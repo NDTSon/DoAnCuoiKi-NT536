@@ -146,6 +146,11 @@ func NewLivekitServer(conf *config.Config,
 	rtcService.SetupRoutes(mux)
 	whipService.SetupRoutes(mux)
 	mux.Handle("/agent", agentService)
+	
+	// Register Streaming API handlers
+	streamingAPI := NewStreamingAPIService()
+	streamingAPI.RegisterHTTPHandlers(mux)
+	
 	mux.HandleFunc("/", s.defaultHandler)
 
 	s.httpServer = &http.Server{

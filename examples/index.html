@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Hướng Dẫn Chạy LiveKit</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .step {
+            background: #f8f9fa;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+
+        .step h2 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .command {
+            background: #1a1a1a;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .warning strong {
+            color: #856404;
+        }
+
+        .success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .success strong {
+            color: #155724;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 10px 5px;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+        }
+
+        .btn-info:hover {
+            background: #138496;
+        }
+
+        ul {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+
+        li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #c7254e;
+        }
+
+        .actions {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: #e3f2fd;
+            border-radius: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Hướng Dẫn Chạy LiveKit Server</h1>
+
+        <div class="warning">
+            <strong>⚠️ LỖI BẠN ĐANG GẶP:</strong><br>
+            Browser báo "Failed to fetch" và "ERR_CONNECTION_REFUSED" vì <strong>SERVER CHƯA CHẠY!</strong>
+        </div>
+
+        <!-- Step 1 -->
+        <div class="step">
+            <h2>
+                <span class="step-number">1</span>
+                Mở PowerShell MỚI
+            </h2>
+            <p><strong>QUAN TRỌNG:</strong> PowerShell cũ chưa nhận Go. Phải mở PowerShell mới!</p>
+            <ul>
+                <li>Đóng tất cả PowerShell cũ</li>
+                <li>Nhấn <code>Windows + X</code></li>
+                <li>Chọn <strong>"Windows PowerShell"</strong> hoặc <strong>"Terminal"</strong></li>
+            </ul>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step">
+            <h2>
+                <span class="step-number">2</span>
+                Kiểm tra Go
+            </h2>
+            <p>Trong PowerShell mới, gõ:</p>
+            <div class="command">go version</div>
+            <div class="success">
+                <strong>✅ Phải thấy:</strong> go version go1.25.3 windows/amd64
+            </div>
+            <p>Nếu thấy lỗi "go: command not found" → Đóng và mở lại PowerShell!</p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step">
+            <h2>
+                <span class="step-number">3</span>
+                Vào thư mục project
+            </h2>
+            <div class="command">cd c:\da-NT536\livekit</div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="step">
+            <h2>
+                <span class="step-number">4</span>
+                Chạy Server
+            </h2>
+            <p>Chọn 1 trong 3 cách (cách 1 đơn giản nhất):</p>
+            
+            <h3>✅ Cách 1: Dùng file .bat</h3>
+            <div class="command">.\start-server.bat</div>
+            
+            <h3>✅ Cách 2: Dùng Go trực tiếp</h3>
+            <div class="command">go run ./cmd/server --dev</div>
+            
+            <h3>✅ Cách 3: Dùng PowerShell script</h3>
+            <div class="command">.\quick-start.ps1</div>
+
+            <div class="success">
+                <strong>✅ Server đang chạy khi thấy:</strong><br>
+                <code>starting LiveKit server</code><br>
+                <code>port: 7880</code>
+            </div>
+
+            <div class="warning">
+                <strong>⚠️ LƯU Ý:</strong> Giữ PowerShell window này MỞ! Đừng đóng nó!
+            </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="step">
+            <h2>
+                <span class="step-number">5</span>
+                Kiểm tra Server
+            </h2>
+            <p>Trước khi mở demo, hãy test xem server có chạy không:</p>
+            <ol>
+                <li>Mở browser</li>
+                <li>Vào: <code>http://localhost:7880</code></li>
+                <li>Nếu thấy trang LiveKit → Server OK ✅</li>
+                <li>Nếu thấy "can't be reached" → Server chưa chạy ❌</li>
+            </ol>
+        </div>
+
+        <!-- Step 6 -->
+        <div class="step">
+            <h2>
+                <span class="step-number">6</span>
+                Test Connection
+            </h2>
+            <p>Mở file test để kiểm tra kết nối:</p>
+            <div class="actions">
+                <a href="test-connection.html" class="btn btn-info">
+                    🔌 Mở Test Connection
+                </a>
+            </div>
+            <p>Click nút "Test Connection" và đảm bảo thấy ✅ trước khi tiếp tục!</p>
+        </div>
+
+        <!-- Step 7 -->
+        <div class="step">
+            <h2>
+                <span class="step-number">7</span>
+                Mở Demo
+            </h2>
+            <p>Chỉ khi Test Connection thành công, mới mở demo:</p>
+            <div class="actions">
+                <a href="streaming-demo.html" class="btn btn-success">
+                    🎥 Mở Streaming Demo
+                </a>
+            </div>
+        </div>
+
+        <!-- Troubleshooting -->
+        <div class="step" style="border-left-color: #dc3545;">
+            <h2>
+                🐛 Gặp Lỗi?
+            </h2>
+            
+            <h3>❌ Lỗi: "go: command not found"</h3>
+            <p><strong>Fix:</strong> Đóng PowerShell, mở PowerShell MỚI, thử lại</p>
+
+            <h3>❌ Lỗi: "cannot find module"</h3>
+            <div class="command">go mod tidy<br>go mod download</div>
+
+            <h3>❌ Lỗi: "port 7880 already in use"</h3>
+            <div class="command">netstat -ano | findstr :7880<br>taskkill /PID &lt;PID&gt; /F</div>
+
+            <h3>❌ Demo vẫn báo "Failed to fetch"</h3>
+            <ul>
+                <li>Kiểm tra server có đang chạy không (PowerShell window còn mở?)</li>
+                <li>Vào <code>http://localhost:7880</code> có mở được không?</li>
+                <li>Refresh lại trang demo</li>
+            </ul>
+        </div>
+
+        <!-- Summary -->
+        <div class="step" style="border-left-color: #28a745; background: #d4edda;">
+            <h2>✅ Tóm Tắt</h2>
+            <ol>
+                <li>Mở PowerShell MỚI</li>
+                <li><code>go version</code> → Phải thấy Go</li>
+                <li><code>cd c:\da-NT536\livekit</code></li>
+                <li><code>.\start-server.bat</code></li>
+                <li>Đợi "starting LiveKit server"</li>
+                <li>Test: <code>http://localhost:7880</code></li>
+                <li>Mở test-connection.html → Click Test</li>
+                <li>Nếu ✅ → Mở streaming-demo.html</li>
+            </ol>
+        </div>
+
+        <div class="actions">
+            <a href="test-connection.html" class="btn btn-info">
+                🔌 Test Connection Trước
+            </a>
+            <a href="streaming-demo.html" class="btn btn-success">
+                🎥 Streaming Demo
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Auto-check if server is running
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch('http://localhost:7880', {
+                    method: 'GET',
+                    mode: 'no-cors'
+                });
+                
+                const warning = document.querySelector('.warning');
+                warning.style.background = '#d4edda';
+                warning.style.borderColor = '#28a745';
+                warning.innerHTML = '<strong>✅ SERVER ĐANG CHẠY!</strong><br>Bạn có thể mở demo ngay!';
+            } catch (error) {
+                // Server not running, keep warning
+            }
+        });
+    </script>
+</body>
+</html>

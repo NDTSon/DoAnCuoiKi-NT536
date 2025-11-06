@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xem Stream Trực Tiếp</title>
+    <!-- LiveKit Client SDK - Local File -->
+    <script src="libs/livekit-client.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f172a;
+            color: white;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .stream-title {
+            font-size: 1.3em;
+            font-weight: 700;
+        }
+
+        .live-badge {
+            background: #ef4444;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.85em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .viewer-count {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            height: calc(100vh - 70px);
+        }
+
+        .video-section {
+            background: #000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .video-container {
+            flex: 1;
+            position: relative;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #video-player {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #000;
+        }
+
+        .video-placeholder {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .video-placeholder h2 {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        #reaction-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .floating-reaction {
+            position: absolute;
+            font-size: 3em;
+            animation: float-up 3s ease-out forwards;
+        }
+
+        @keyframes float-up {
+            0% {
+                transform: translateY(0) scale(1) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-250px) scale(1.5) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .video-controls {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95em;
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .quality-selector {
+            display: flex;
+            gap: 5px;
+        }
+
+        .quality-option {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.3s;
+        }
+
+        .quality-option:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .quality-option.active {
+            background: #6366f1;
+            border-color: #6366f1;
+        }
+
+        .sidebar {
+            background: #1e293b;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #334155;
+        }
+
+        .sidebar-tabs {
+            display: flex;
+            background: #0f172a;
+            border-bottom: 2px solid #334155;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95em;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn:hover {
+            color: white;
+            background: #1e293b;
+        }
+
+        .tab-btn.active {
+            color: white;
+            border-bottom-color: #ec4899;
+            background: #1e293b;
+        }
+
+        .tab-content {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            background: #0f172a;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .chat-message {
+            padding: 10px 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            background: #1e293b;
+            border-left: 3px solid #ec4899;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .message-sender {
+            font-weight: 700;
+            color: #ec4899;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .message-time {
+            font-size: 0.75em;
+            color: #94a3b8;
+        }
+
+        .message-content {
+            color: #e2e8f0;
+            line-height: 1.5;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px;
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: #ec4899;
+        }
+
+        .send-btn {
+            padding: 12px 20px;
+            background: #ec4899;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .send-btn:hover {
+            background: #db2777;
+        }
+
+        .reactions-container {
+            padding: 20px;
+        }
+
+        .reactions-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .reaction-btn {
+            aspect-ratio: 1;
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 12px;
+            font-size: 2.5em;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .reaction-btn:hover {
+            transform: scale(1.15) rotate(10deg);
+            border-color: #ec4899;
+            background: #1e293b;
+            box-shadow: 0 8px 20px rgba(236, 72, 153, 0.3);
+        }
+
+        .reaction-btn:active {
+            transform: scale(0.9);
+        }
+
+        .info-container {
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .info-section {
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .info-section h3 {
+            color: #ec4899;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .streamer-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .streamer-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ec4899, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .stat-box {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: #94a3b8;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: white;
+        }
+
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr auto;
+            }
+
+            .sidebar {
+                max-height: 400px;
+                border-left: none;
+                border-top: 1px solid #334155;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <button class="back-btn" onclick="window.location.href='live-streams.html'">← Back</button>
+            <div class="stream-title" id="stream-title">Loading...</div>
+            <div class="live-badge">
+                <div class="live-dot"></div>
+                <span>LIVE</span>
+            </div>
+        </div>
+        <div class="viewer-count">
+            <span>👁️</span>
+            <span id="viewer-count">0</span>
+            <span>viewers</span>
+        </div>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Video Section -->
+        <div class="video-section">
+            <div class="video-container">
+                <video id="video-player" autoplay playsinline></video>
+                
+                <div class="video-placeholder" id="video-placeholder">
+                    <h2>🎥</h2>
+                    <p>Đang kết nối đến stream...</p>
+                </div>
+
+                <div id="reaction-overlay"></div>
+            </div>
+
+            <div class="video-controls">
+                <div class="control-group">
+                    <button class="control-btn" id="btn-mute">🔊 Unmuted</button>
+                    <button class="control-btn" id="btn-fullscreen">⛶ Fullscreen</button>
+                </div>
+                <div class="quality-selector">
+                    <div class="quality-option active" data-quality="auto">Auto</div>
+                    <div class="quality-option" data-quality="1080p">1080p</div>
+                    <div class="quality-option" data-quality="720p">720p</div>
+                    <div class="quality-option" data-quality="480p">480p</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-tabs">
+                <button class="tab-btn active" data-tab="chat">💬 Chat</button>
+                <button class="tab-btn" data-tab="reactions">❤️ Reactions</button>
+                <button class="tab-btn" data-tab="info">ℹ️ Info</button>
+            </div>
+
+            <!-- Chat Tab -->
+            <div class="tab-content active" id="tab-chat">
+                <div class="chat-container">
+                    <div class="chat-messages" id="chat-messages">
+                        <!-- Chat messages will appear here -->
+                    </div>
+                    <div class="chat-input-area">
+                        <input type="text" class="chat-input" id="chat-input" placeholder="Gửi tin nhắn...">
+                        <button class="send-btn" id="btn-send-chat">📤</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reactions Tab -->
+            <div class="tab-content" id="tab-reactions">
+                <div class="reactions-container">
+                    <h3 style="color: #e2e8f0; margin-bottom: 15px;">Gửi cảm xúc của bạn!</h3>
+                    <div class="reactions-grid">
+                        <button class="reaction-btn" data-reaction="like">👍</button>
+                        <button class="reaction-btn" data-reaction="heart">❤️</button>
+                        <button class="reaction-btn" data-reaction="wow">😮</button>
+                        <button class="reaction-btn" data-reaction="laugh">😂</button>
+                        <button class="reaction-btn" data-reaction="sad">😢</button>
+                        <button class="reaction-btn" data-reaction="fire">🔥</button>
+                        <button class="reaction-btn" data-reaction="clap">👏</button>
+                        <button class="reaction-btn" data-reaction="party">🎉</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Tab -->
+            <div class="tab-content" id="tab-info">
+                <div class="info-container">
+                    <div class="info-section">
+                        <div class="streamer-header">
+                            <div class="streamer-avatar" id="streamer-avatar">🎤</div>
+                            <div>
+                                <h3 id="streamer-name" style="margin: 0;">Streamer Name</h3>
+                                <div style="color: #94a3b8; font-size: 0.9em;">Live Now</div>
+                            </div>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stat-box">
+                                <div class="stat-label">Viewers</div>
+                                <div class="stat-value" id="info-viewers">0</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Duration</div>
+                                <div class="stat-value" id="info-duration">00:00</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Messages</div>
+                                <div class="stat-value" id="info-messages">0</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Reactions</div>
+                                <div class="stat-value" id="info-reactions">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_URL = 'http://localhost:7880/api/streaming';
+        const WS_URL = 'ws://localhost:7880/api/streaming';
+        const LIVEKIT_URL = 'ws://localhost:7880';
+        
+        // Get stream ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const streamId = urlParams.get('stream') || 'default-stream';
+        const ROOM_NAME = streamId;
+        const USER_ID = 'viewer-' + Math.random().toString(36).substr(2, 9);
+
+        // State
+        let chatWebSocket = null;
+        let reactionsWebSocket = null;
+        let streamStartTime = Date.now();
+        let isMuted = false;
+        
+        // LiveKit state
+        let livekitRoom = null;
+
+        // Statistics
+        const stats = {
+            viewers: 0,
+            messages: 0,
+            reactions: 0
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if LiveKit SDK loaded
+            if (typeof LivekitClient === 'undefined') {
+                console.error('❌ LiveKit SDK not loaded!');
+                alert('❌ Error: LiveKit SDK failed to load. Please refresh the page.');
+                return;
+            }
+            console.log('✅ LiveKit SDK loaded successfully');
+            
+            loadStreamInfo();
+            setupEventListeners();
+            connectToStream();
+            startDurationTimer();
+            // REMOVED: simulateViewers() - Use real viewer count from LiveKit
+        });
+
+        function setupEventListeners() {
+            // Tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+            });
+
+            // Chat
+            document.getElementById('btn-send-chat').addEventListener('click', sendChatMessage);
+            document.getElementById('chat-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendChatMessage();
+            });
+
+            // Reactions
+            document.querySelectorAll('.reaction-btn').forEach(btn => {
+                btn.addEventListener('click', () => sendReaction(btn.dataset.reaction));
+            });
+
+            // Video controls
+            document.getElementById('btn-mute').addEventListener('click', toggleMute);
+            document.getElementById('btn-fullscreen').addEventListener('click', toggleFullscreen);
+
+            // Quality selector
+            document.querySelectorAll('.quality-option').forEach(opt => {
+                opt.addEventListener('click', () => selectQuality(opt));
+            });
+        }
+
+        function loadStreamInfo() {
+            // Load stream metadata from localStorage
+            try {
+                const stored = localStorage.getItem('livekit_active_streams');
+                if (stored) {
+                    const streams = JSON.parse(stored);
+                    const currentStream = streams.find(s => s.id === ROOM_NAME);
+                    
+                    if (currentStream) {
+                        document.getElementById('stream-title').textContent = currentStream.title;
+                        document.getElementById('streamer-name').textContent = currentStream.streamer;
+                        document.getElementById('streamer-avatar').textContent = currentStream.avatar ? '' : '🎤';
+                        if (currentStream.avatar) {
+                            const avatarImg = document.createElement('img');
+                            avatarImg.src = currentStream.avatar;
+                            avatarImg.style.width = '100%';
+                            avatarImg.style.height = '100%';
+                            avatarImg.style.borderRadius = '50%';
+                            document.getElementById('streamer-avatar').appendChild(avatarImg);
+                        }
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading stream info:', error);
+            }
+            
+            // Fallback
+            document.getElementById('stream-title').textContent = 'Live Stream';
+            document.getElementById('streamer-name').textContent = 'Streamer';
+            document.getElementById('streamer-avatar').textContent = '🎤';
+        }
+
+        function setupChatWebSocket(ws) {
+            ws.onopen = () => {
+                console.log('✅ Chat WebSocket connected');
+                // Show success message in chat
+                const chatMessages = document.getElementById('chat-messages');
+                const notice = document.createElement('div');
+                notice.style.cssText = 'padding: 8px; background: #d1fae5; color: #065f46; border-radius: 5px; margin: 10px; text-align: center; font-size: 0.9em;';
+                notice.textContent = '✅ Chat đã sẵn sàng!';
+                chatMessages.appendChild(notice);
+                setTimeout(() => notice.remove(), 3000);
+            };
+
+            ws.onerror = (error) => {
+                console.error('❌ Chat WebSocket error:', error);
+            };
+
+            ws.onclose = (event) => {
+                console.log('Chat WebSocket closed. Code:', event.code, 'Reason:', event.reason);
+                // Note: Using LiveKit DataChannel for chat now, WebSocket is fallback only
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const message = JSON.parse(event.data);
+                    addChatMessage(message);
+                    stats.messages++;
+                    updateStats();
+                } catch (e) {
+                    console.error('Error parsing chat message:', e);
+                }
+            };
+        }
+
+        function setupReactionsWebSocket(ws) {
+            ws.onopen = () => {
+                console.log('✅ Reactions WebSocket connected');
+            };
+
+            ws.onerror = (error) => {
+                console.warn('⚠️ Reactions WebSocket error:', error);
+            };
+
+            ws.onclose = () => {
+                console.log('Reactions WebSocket closed');
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const reaction = JSON.parse(event.data);
+                    showReactionAnimation(reaction);
+                    stats.reactions++;
+                    updateStats();
+                } catch (e) {
+                    console.error('Error parsing reaction:', e);
+                }
+            };
+        }
+
+        async function connectToStream() {
+            try {
+                // Step 1: Connect WebSockets for chat/reactions (non-blocking)
+                try {
+                    chatWebSocket = new WebSocket(`${WS_URL}/chat/ws?room_name=${ROOM_NAME}&user_id=${USER_ID}`);
+                    setupChatWebSocket(chatWebSocket);
+                } catch (wsError) {
+                    console.warn('⚠️ Failed to connect chat WebSocket:', wsError);
+                }
+
+                try {
+                    reactionsWebSocket = new WebSocket(`${WS_URL}/reactions/ws?room_name=${ROOM_NAME}`);
+                    setupReactionsWebSocket(reactionsWebSocket);
+                } catch (wsError) {
+                    console.warn('⚠️ Failed to connect reactions WebSocket:', wsError);
+                }
+
+                // Step 2: Get access token from server
+                updateConnectionStatus('connecting');
+                
+                const tokenResponse = await fetch(`${API_URL}/token`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        room_name: ROOM_NAME,
+                        identity: USER_ID,
+                        is_publisher: false
+                    })
+                });
+
+                if (!tokenResponse.ok) {
+                    throw new Error('Failed to get access token');
+                }
+
+                const { token } = await tokenResponse.json();
+                console.log('✅ Got viewer access token');
+
+                // Step 3: Connect to LiveKit Room
+                updateConnectionStatus('connecting-livekit');
+                
+                livekitRoom = new LivekitClient.Room();
+
+                // Setup event listeners
+                livekitRoom.on(LivekitClient.RoomEvent.TrackSubscribed, (track, publication, participant) => {
+                    console.log('✅ Subscribed to track from:', participant.identity);
+                    
+                    if (track.kind === 'video') {
+                        const videoElement = document.getElementById('video-player');
+                        track.attach(videoElement);
+                        
+                        // Hide placeholder
+                        document.getElementById('video-placeholder').style.display = 'none';
+                        videoElement.style.display = 'block';
+                        
+                        updateConnectionStatus('streaming');
+                    }
+                });
+
+                livekitRoom.on(LivekitClient.RoomEvent.TrackUnsubscribed, (track, publication, participant) => {
+                    console.log('Track unsubscribed from:', participant.identity);
+                    track.detach();
+                    
+                    // Show placeholder
+                    document.getElementById('video-placeholder').style.display = 'flex';
+                    document.getElementById('video-player').style.display = 'none';
+                    updateConnectionStatus('no-stream');
+                });
+
+                livekitRoom.on(LivekitClient.RoomEvent.Disconnected, () => {
+                    console.log('Disconnected from room');
+                    updateConnectionStatus('disconnected');
+                });
+
+                livekitRoom.on(LivekitClient.RoomEvent.ParticipantConnected, (participant) => {
+                    // Count actual remote participants (streamer + other viewers)
+                    const actualCount = Array.from(livekitRoom.remoteParticipants.values()).length;
+                    console.log('Participant joined:', participant.identity, '| Actual count:', actualCount);
+                    stats.viewers = actualCount;
+                    updateStats();
+                });
+
+                livekitRoom.on(LivekitClient.RoomEvent.ParticipantDisconnected, (participant) => {
+                    // Count actual remote participants
+                    const actualCount = Array.from(livekitRoom.remoteParticipants.values()).length;
+                    console.log('Participant left:', participant.identity, '| Actual count:', actualCount);
+                    stats.viewers = actualCount;
+                    updateStats();
+                });
+
+                // Listen for data messages (chat via LiveKit DataChannel)
+                livekitRoom.on(LivekitClient.RoomEvent.DataReceived, (payload, participant) => {
+                    try {
+                        const decoder = new TextDecoder();
+                        const text = decoder.decode(payload);
+                        const data = JSON.parse(text);
+                        
+                        if (data.type === 'chat') {
+                            console.log('📨 Chat via LiveKit from:', participant?.identity);
+                            addChatMessage({
+                                sender_name: participant?.identity || data.sender_name || 'Unknown',
+                                content: data.content,
+                                timestamp: data.timestamp
+                            });
+                            stats.messages++;
+                            updateStats();
+                        } else if (data.type === 'reaction') {
+                            console.log('❤️ Reaction via LiveKit:', data.reaction_type);
+                            showReactionAnimation(data);
+                            stats.reactions++;
+                            updateStats();
+                        }
+                    } catch (e) {
+                        console.error('Error processing data:', e);
+                    }
+                });
+
+                // Connect to room
+                await livekitRoom.connect(LIVEKIT_URL, token);
+                console.log('✅ Connected to LiveKit room:', ROOM_NAME);
+                
+                // Count existing participants after connection
+                // Wait a bit for participant events to fire, then count
+                setTimeout(() => {
+                    const remoteCount = Array.from(livekitRoom.remoteParticipants?.values() || []).length;
+                    stats.viewers = remoteCount; // Only count actual remote participants (streamers/other viewers)
+                    console.log('Initial viewer count updated:', stats.viewers, 'remote participants');
+                    updateStats();
+                }, 500);
+                
+                updateConnectionStatus('waiting');
+                
+            } catch (error) {
+                console.error('Connection error:', error);
+                updateConnectionStatus('error');
+            }
+        }
+
+        function updateConnectionStatus(status) {
+            const placeholder = document.getElementById('video-placeholder');
+            
+            switch(status) {
+                case 'connecting':
+                    placeholder.innerHTML = '<h2>🔗 Đang kết nối...</h2><p>Đang lấy access token...</p>';
+                    break;
+                case 'connecting-livekit':
+                    placeholder.innerHTML = '<h2>� Đang kết nối LiveKit...</h2><p>Đang join room...</p>';
+                    break;
+                case 'waiting':
+                    placeholder.innerHTML = '<h2>⏳ Đang chờ stream...</h2><p>Đã kết nối! Đang chờ streamer bắt đầu phát...</p>';
+                    break;
+                case 'streaming':
+                    placeholder.innerHTML = '<h2>🎥 Đang xem stream!</h2>';
+                    break;
+                case 'no-stream':
+                    placeholder.innerHTML = '<h2>⏸️ Stream đã kết thúc</h2><p>Streamer đã dừng phát.</p>';
+                    break;
+                case 'disconnected':
+                    placeholder.innerHTML = '<h2>📡 Mất kết nối</h2><p>Đã ngắt kết nối khỏi room.</p>';
+                    break;
+                case 'error':
+                    placeholder.innerHTML = '<h2>❌ Lỗi kết nối</h2><p>Không thể kết nối. Server có đang chạy không?</p>';
+                    break;
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const content = input.value.trim();
+
+            if (!content) return;
+
+            try {
+                // Send via LiveKit DataChannel instead of WebSocket
+                if (livekitRoom && livekitRoom.state === 'connected') {
+                    console.log('📤 Preparing to send chat via LiveKit...');
+                    console.log('Room state:', livekitRoom.state);
+                    console.log('Local participant:', livekitRoom.localParticipant?.identity);
+                    
+                    const message = {
+                        type: 'chat',
+                        sender_name: 'Viewer-' + USER_ID.substr(-4),
+                        content: content,
+                        timestamp: new Date().toISOString()
+                    };
+
+                    console.log('Message object:', message);
+
+                    const encoder = new TextEncoder();
+                    const data = encoder.encode(JSON.stringify(message));
+                    
+                    console.log('Encoded data size:', data.byteLength, 'bytes');
+                    
+                    // Send to all participants
+                    await livekitRoom.localParticipant.publishData(data, { reliable: true });
+                    
+                    console.log('✅ Chat sent via LiveKit DataChannel');
+                    console.log('Number of remote participants:', livekitRoom?.participants?.size || 0);
+                    
+                    input.value = '';
+                    
+                    // Add to local chat immediately
+                    addChatMessage(message);
+                    
+                } else {
+                    console.warn('⚠️ LiveKit room not connected. State:', livekitRoom?.state);
+                    
+                    // Fallback to WebSocket if available
+                    if (!chatWebSocket || chatWebSocket.readyState !== WebSocket.OPEN) {
+                        const chatMessages = document.getElementById('chat-messages');
+                        const notice = document.createElement('div');
+                        notice.style.cssText = 'padding: 10px; background: #fee2e2; color: #991b1b; border-radius: 5px; margin: 10px; text-align: center;';
+                        notice.innerHTML = `<strong>❌ Chưa kết nối LiveKit</strong><br><small>Vui lòng đợi kết nối hoàn tất.</small>`;
+                        chatMessages.appendChild(notice);
+                        setTimeout(() => notice.remove(), 3000);
+                        return;
+                    }
+
+                    // Send via WebSocket
+                    const message = {
+                        room_name: ROOM_NAME,
+                        sender_id: USER_ID,
+                        sender_name: 'Viewer-' + USER_ID.substr(-4),
+                        content: content,
+                        message_type: 'text',
+                        timestamp: new Date().toISOString()
+                    };
+
+                    chatWebSocket.send(JSON.stringify(message));
+                    input.value = '';
+                    addChatMessage(message);
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('❌ Không thể gửi tin nhắn: ' + error.message);
+            }
+        }
+
+        async function sendReaction(type) {
+            try {
+                // Send via LiveKit DataChannel
+                if (livekitRoom && livekitRoom.state === 'connected') {
+                    const reaction = {
+                        type: 'reaction',
+                        user_name: 'Viewer-' + USER_ID.substr(-4),
+                        reaction_type: type,
+                        x: Math.random() * 0.8 + 0.1,
+                        y: 0.8,
+                        timestamp: new Date().toISOString()
+                    };
+
+                    const encoder = new TextEncoder();
+                    const data = encoder.encode(JSON.stringify(reaction));
+                    
+                    await livekitRoom.localParticipant.publishData(data, { reliable: false });
+                    
+                    console.log('✅ Reaction sent via LiveKit:', type);
+                    showReactionAnimation(reaction);
+                    
+                } else {
+                    // Fallback to WebSocket
+                    if (!reactionsWebSocket || reactionsWebSocket.readyState !== WebSocket.OPEN) {
+                        console.warn('⚠️ Reactions not available');
+                        return;
+                    }
+
+                    const reaction = {
+                        room_name: ROOM_NAME,
+                        user_id: USER_ID,
+                        user_name: 'Viewer-' + USER_ID.substr(-4),
+                        reaction_type: type,
+                        x: Math.random() * 0.8 + 0.1,
+                        y: 0.8,
+                        timestamp: new Date().toISOString()
+                    };
+
+                    reactionsWebSocket.send(JSON.stringify(reaction));
+                    showReactionAnimation(reaction);
+                }
+            } catch (error) {
+                console.error('Error sending reaction:', error);
+            }
+        }
+
+        function addChatMessage(message) {
+            const container = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message';
+            
+            const time = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+            
+            messageDiv.innerHTML = `
+                <div class="message-sender">
+                    <span>${message.sender_name || 'User'}</span>
+                    <span class="message-time">${time}</span>
+                </div>
+                <div class="message-content">${message.content}</div>
+            `;
+            
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function showReactionAnimation(reaction) {
+            const overlay = document.getElementById('reaction-overlay');
+            const emoji = document.createElement('div');
+            emoji.className = 'floating-reaction';
+            
+            // Get reaction type - try reaction_type first, then type (but not if type='reaction')
+            const reactionType = reaction.reaction_type || (reaction.type !== 'reaction' ? reaction.type : null);
+            emoji.textContent = getReactionEmoji(reactionType);
+            
+            emoji.style.left = (reaction.x ? reaction.x * 100 : Math.random() * 90) + '%';
+            emoji.style.bottom = '0';
+
+            overlay.appendChild(emoji);
+            setTimeout(() => emoji.remove(), 3000);
+        }
+
+        function getReactionEmoji(type) {
+            const emojis = {
+                like: '👍', heart: '❤️', wow: '😮', laugh: '😂',
+                sad: '😢', fire: '🔥', clap: '👏', party: '🎉'
+            };
+            return emojis[type] || '❤️';
+        }
+
+        function toggleMute() {
+            const video = document.getElementById('video-player');
+            const btn = document.getElementById('btn-mute');
+            isMuted = !isMuted;
+            video.muted = isMuted;
+            btn.textContent = isMuted ? '🔇 Muted' : '🔊 Unmuted';
+        }
+
+        function toggleFullscreen() {
+            const container = document.querySelector('.video-container');
+            if (!document.fullscreenElement) {
+                container.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        function selectQuality(option) {
+            document.querySelectorAll('.quality-option').forEach(opt => opt.classList.remove('active'));
+            option.classList.add('active');
+        }
+
+        function updateStats() {
+            // Update header viewer count
+            const viewerCountElement = document.getElementById('viewer-count');
+            if (viewerCountElement) {
+                viewerCountElement.textContent = stats.viewers;
+            }
+            
+            // Update info tab stats
+            document.getElementById('info-viewers').textContent = stats.viewers;
+            document.getElementById('info-messages').textContent = stats.messages;
+            document.getElementById('info-reactions').textContent = stats.reactions;
+        }
+
+        function startDurationTimer() {
+            setInterval(() => {
+                const duration = Math.floor((Date.now() - streamStartTime) / 1000);
+                const minutes = Math.floor(duration / 60);
+                const seconds = duration % 60;
+                document.getElementById('info-duration').textContent = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        // REMOVED simulateViewers() - Now using REAL viewer counts from LiveKit ParticipantConnected/Disconnected events
+    </script>
+</body>
+</html>

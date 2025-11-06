@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VOD - Video on Demand</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+            padding: 25px 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-link {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            text-decoration: none;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        .filters-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 15px;
+        }
+
+        .search-box::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #6366f1;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .filter-btn {
+            padding: 12px 24px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .filter-btn.active {
+            background: #6366f1;
+            border-color: #6366f1;
+        }
+
+        .videos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .video-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .video-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+            border-color: #6366f1;
+        }
+
+        .video-thumbnail {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .video-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-duration {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 700;
+        }
+
+        .video-views {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(239, 68, 68, 0.9);
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .video-info {
+            padding: 20px;
+        }
+
+        .video-title {
+            font-size: 1.1em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: white;
+            line-height: 1.4;
+        }
+
+        .video-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 12px;
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .streamer-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .streamer-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ec4899, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1em;
+        }
+
+        .streamer-name {
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .video-stats {
+            display: flex;
+            gap: 15px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 0.85em;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .play-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: rgba(99, 102, 241, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .video-card:hover .play-overlay {
+            opacity: 1;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .view-all-btn {
+            padding: 10px 20px;
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .view-all-btn:hover {
+            background: #4f46e5;
+            transform: translateY(-2px);
+        }
+
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 50px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: #1a1a2e;
+            border-radius: 12px;
+            max-width: 1200px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-video {
+            width: 100%;
+            height: 600px;
+            background: #000;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .modal-video video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .modal-info {
+            padding: 25px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.8);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .modal-close:hover {
+            background: #ef4444;
+        }
+
+        @media (max-width: 768px) {
+            .videos-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filters-section {
+                flex-direction: column;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .modal-video {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <h1>📼 VOD Library</h1>
+            <div class="nav-links">
+                <a href="streamer-advanced.html" class="nav-link">🎤 Streamer</a>
+                <a href="viewer-advanced.html" class="nav-link">👁️ Viewer</a>
+                <a href="streaming-demo.html" class="nav-link">🎬 Live</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Filters Section -->
+        <div class="filters-section">
+            <input type="text" class="search-box" id="search-box" placeholder="🔍 Tìm kiếm video...">
+            <button class="filter-btn active" data-filter="all">📺 All</button>
+            <button class="filter-btn" data-filter="recent">🆕 Recent</button>
+            <button class="filter-btn" data-filter="popular">🔥 Popular</button>
+            <button class="filter-btn" data-filter="longest">⏱️ Longest</button>
+        </div>
+
+        <!-- Recent Videos Section -->
+        <div class="section-header">
+            <h2 class="section-title">🆕 Recent Streams</h2>
+            <button class="view-all-btn">View All</button>
+        </div>
+
+        <div class="videos-grid" id="videos-grid">
+            <!-- Videos will be populated here -->
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading-spinner" id="loading-spinner" style="display: none;">
+            <div class="spinner"></div>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="empty-state" style="display: none;">
+            <div class="empty-state-icon">📼</div>
+            <h3>No videos found</h3>
+            <p>Try adjusting your filters or search terms</p>
+        </div>
+    </div>
+
+    <!-- Video Player Modal -->
+    <div class="modal" id="video-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close">×</button>
+            <div class="modal-video">
+                <video id="modal-video-player" controls autoplay></video>
+            </div>
+            <div class="modal-info">
+                <h2 id="modal-video-title" style="margin-bottom: 15px;"></h2>
+                <div class="streamer-info">
+                    <div class="streamer-avatar" id="modal-streamer-avatar">🎤</div>
+                    <div>
+                        <div class="streamer-name" id="modal-streamer-name">Streamer Name</div>
+                        <div style="font-size: 0.85em; color: rgba(255, 255, 255, 0.6);" id="modal-video-date">Date</div>
+                    </div>
+                </div>
+                <div class="video-meta" style="margin: 15px 0;">
+                    <div class="meta-item">👁️ <span id="modal-video-views">0</span> views</div>
+                    <div class="meta-item">⏱️ <span id="modal-video-duration">00:00</span></div>
+                    <div class="meta-item">💬 <span id="modal-video-messages">0</span> messages</div>
+                    <div class="meta-item">❤️ <span id="modal-video-reactions">0</span> reactions</div>
+                </div>
+                <p style="line-height: 1.6; color: rgba(255, 255, 255, 0.8);" id="modal-video-description">
+                    Video description will appear here...
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock VOD data
+        const vodData = [
+            {
+                id: 1,
+                title: "Epic Gaming Session - League of Legends Ranked",
+                streamer: "ProGamer123",
+                avatar: "🎮",
+                duration: "2:45:30",
+                views: 15420,
+                date: "2 days ago",
+                thumbnail: null,
+                messages: 3420,
+                reactions: 1250,
+                description: "An amazing ranked session where we climbed from Diamond to Master! Thanks everyone for watching and supporting!"
+            },
+            {
+                id: 2,
+                title: "Live Coding: Building a React App from Scratch",
+                streamer: "DevMaster",
+                avatar: "💻",
+                duration: "3:12:45",
+                views: 8930,
+                date: "3 days ago",
+                thumbnail: null,
+                messages: 1890,
+                reactions: 890,
+                description: "In this stream, we built a complete React application with hooks, context API, and custom components. Great learning session!"
+            },
+            {
+                id: 3,
+                title: "Music Production Stream - Creating EDM Track",
+                streamer: "BeatMaker",
+                avatar: "🎵",
+                duration: "1:55:20",
+                views: 5670,
+                date: "5 days ago",
+                thumbnail: null,
+                messages: 780,
+                reactions: 560,
+                description: "Creating a fresh EDM track from scratch using Ableton Live. Thanks for all the feedback and support!"
+            },
+            {
+                id: 4,
+                title: "Art Stream: Digital Painting Tutorial",
+                streamer: "ArtisticSoul",
+                avatar: "🎨",
+                duration: "2:30:15",
+                views: 12340,
+                date: "1 week ago",
+                thumbnail: null,
+                messages: 2100,
+                reactions: 1450,
+                description: "Digital painting tutorial focusing on lighting and composition. Hope you enjoyed the process!"
+            },
+            {
+                id: 5,
+                title: "Cooking Stream: Traditional Vietnamese Pho",
+                streamer: "ChefVN",
+                avatar: "👨‍🍳",
+                duration: "1:45:30",
+                views: 9870,
+                date: "1 week ago",
+                thumbnail: null,
+                messages: 1560,
+                reactions: 980,
+                description: "Authentic Vietnamese Pho recipe passed down from my grandmother. Every step explained in detail!"
+            },
+            {
+                id: 6,
+                title: "Fitness Training: Full Body Workout",
+                streamer: "FitCoach",
+                avatar: "💪",
+                duration: "1:15:00",
+                views: 7650,
+                date: "2 weeks ago",
+                thumbnail: null,
+                messages: 890,
+                reactions: 670,
+                description: "Complete full body workout routine for beginners and intermediate level. Remember to stay hydrated!"
+            },
+            {
+                id: 7,
+                title: "Tech Review: Latest Smartphones 2024",
+                streamer: "TechGuru",
+                avatar: "📱",
+                duration: "2:20:45",
+                views: 18920,
+                date: "2 weeks ago",
+                thumbnail: null,
+                messages: 3780,
+                reactions: 2100,
+                description: "Comprehensive review and comparison of the latest flagship smartphones. Which one should you buy?"
+            },
+            {
+                id: 8,
+                title: "Language Learning: Japanese for Beginners",
+                streamer: "LanguageSensei",
+                avatar: "🇯🇵",
+                duration: "1:40:30",
+                views: 6540,
+                date: "3 weeks ago",
+                thumbnail: null,
+                messages: 1230,
+                reactions: 780,
+                description: "Learn basic Japanese phrases and grammar in this beginner-friendly stream. Arigatou gozaimasu!"
+            }
+        ];
+
+        let currentFilter = 'all';
+        let currentSearch = '';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            renderVideos();
+        });
+
+        function setupEventListeners() {
+            // Search
+            document.getElementById('search-box').addEventListener('input', (e) => {
+                currentSearch = e.target.value.toLowerCase();
+                renderVideos();
+            });
+
+            // Filters
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentFilter = btn.dataset.filter;
+                    renderVideos();
+                });
+            });
+
+            // Modal
+            document.getElementById('modal-close').addEventListener('click', closeModal);
+            document.getElementById('video-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'video-modal') closeModal();
+            });
+        }
+
+        function renderVideos() {
+            const grid = document.getElementById('videos-grid');
+            const loading = document.getElementById('loading-spinner');
+            const empty = document.getElementById('empty-state');
+
+            // Show loading
+            loading.style.display = 'flex';
+            grid.style.display = 'none';
+            empty.style.display = 'none';
+
+            setTimeout(() => {
+                let filteredVideos = [...vodData];
+
+                // Apply search filter
+                if (currentSearch) {
+                    filteredVideos = filteredVideos.filter(video =>
+                        video.title.toLowerCase().includes(currentSearch) ||
+                        video.streamer.toLowerCase().includes(currentSearch)
+                    );
+                }
+
+                // Apply category filter
+                switch (currentFilter) {
+                    case 'recent':
+                        filteredVideos.sort((a, b) => new Date(b.date) - new Date(a.date));
+                        break;
+                    case 'popular':
+                        filteredVideos.sort((a, b) => b.views - a.views);
+                        break;
+                    case 'longest':
+                        filteredVideos.sort((a, b) => {
+                            const durationA = parseDuration(a.duration);
+                            const durationB = parseDuration(b.duration);
+                            return durationB - durationA;
+                        });
+                        break;
+                }
+
+                loading.style.display = 'none';
+
+                if (filteredVideos.length === 0) {
+                    empty.style.display = 'block';
+                    return;
+                }
+
+                grid.style.display = 'grid';
+                grid.innerHTML = filteredVideos.map(video => createVideoCard(video)).join('');
+
+                // Add click listeners
+                document.querySelectorAll('.video-card').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const videoId = parseInt(card.dataset.id);
+                        openModal(videoId);
+                    });
+                });
+            }, 500);
+        }
+
+        function createVideoCard(video) {
+            return `
+                <div class="video-card" data-id="${video.id}">
+                    <div class="video-thumbnail">
+                        <div style="font-size: 4em;">${video.avatar}</div>
+                        <div class="video-duration">${video.duration}</div>
+                        <div class="video-views">
+                            <span>👁️</span>
+                            <span>${formatNumber(video.views)}</span>
+                        </div>
+                        <div class="play-overlay">▶️</div>
+                    </div>
+                    <div class="video-info">
+                        <div class="video-title">${video.title}</div>
+                        <div class="streamer-info">
+                            <div class="streamer-avatar">${video.avatar}</div>
+                            <div class="streamer-name">${video.streamer}</div>
+                        </div>
+                        <div class="video-meta">
+                            <div class="meta-item">📅 ${video.date}</div>
+                        </div>
+                        <div class="video-stats">
+                            <div class="stat-item">💬 ${formatNumber(video.messages)}</div>
+                            <div class="stat-item">❤️ ${formatNumber(video.reactions)}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openModal(videoId) {
+            const video = vodData.find(v => v.id === videoId);
+            if (!video) return;
+
+            document.getElementById('modal-video-title').textContent = video.title;
+            document.getElementById('modal-streamer-avatar').textContent = video.avatar;
+            document.getElementById('modal-streamer-name').textContent = video.streamer;
+            document.getElementById('modal-video-date').textContent = video.date;
+            document.getElementById('modal-video-views').textContent = formatNumber(video.views);
+            document.getElementById('modal-video-duration').textContent = video.duration;
+            document.getElementById('modal-video-messages').textContent = formatNumber(video.messages);
+            document.getElementById('modal-video-reactions').textContent = formatNumber(video.reactions);
+            document.getElementById('modal-video-description').textContent = video.description;
+
+            // In a real app, you would set the video source here
+            // document.getElementById('modal-video-player').src = video.videoUrl;
+
+            document.getElementById('video-modal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            const player = document.getElementById('modal-video-player');
+            player.pause();
+            player.src = '';
+
+            document.getElementById('video-modal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            }
+            if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K';
+            }
+            return num.toString();
+        }
+
+        function parseDuration(duration) {
+            const parts = duration.split(':').map(p => parseInt(p));
+            if (parts.length === 3) {
+                return parts[0] * 3600 + parts[1] * 60 + parts[2];
+            }
+            return parts[0] * 60 + parts[1];
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+    </script>
+</body>
+</html>

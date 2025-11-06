@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Streams - Xem Stream Trực Tiếp</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        .section-header {
+            color: white;
+            margin-bottom: 25px;
+        }
+
+        .section-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .section-header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #ef4444;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .streams-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .stream-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .stream-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .stream-thumbnail {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4em;
+        }
+
+        .stream-live-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: #ef4444;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.85em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stream-viewers {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .play-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .stream-card:hover .play-overlay {
+            opacity: 1;
+        }
+
+        .stream-info {
+            padding: 20px;
+        }
+
+        .stream-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .streamer-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .streamer-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ec4899, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+        }
+
+        .streamer-name {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .stream-stats {
+            display: flex;
+            gap: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 0.9em;
+            color: #6b7280;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: white;
+        }
+
+        .empty-state-icon {
+            font-size: 5em;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h2 {
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+
+        .empty-state p {
+            font-size: 1.1em;
+            opacity: 0.9;
+            margin-bottom: 25px;
+        }
+
+        .refresh-btn {
+            padding: 15px 30px;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .refresh-btn:hover {
+            background: #f3f4f6;
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: white;
+            font-size: 1.2em;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .streams-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">🎥 Live Streams</div>
+            <div class="nav-links">
+                <a href="streamer-advanced.html" class="nav-btn">🎤 Bắt đầu Stream</a>
+                <a href="platform-overview.html" class="nav-btn">🏠 Trang chủ</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <div class="section-header">
+            <h1>🔴 Live Streams</h1>
+            <p>Tham gia xem các stream đang phát sóng trực tiếp</p>
+        </div>
+
+        <div class="live-indicator">
+            <div class="live-dot"></div>
+            <span><span id="stream-count">0</span> stream đang live</span>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading" id="loading-state">
+            <div class="spinner"></div>
+            <p>Đang tải danh sách stream...</p>
+        </div>
+
+        <!-- Streams Grid -->
+        <div class="streams-grid" id="streams-grid" style="display: none;">
+            <!-- Streams will be populated here -->
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="empty-state" style="display: none;">
+            <div class="empty-state-icon">📺</div>
+            <h2>Chưa có stream nào đang live</h2>
+            <p>Hãy là người đầu tiên bắt đầu phát sóng!</p>
+            <button class="refresh-btn" onclick="loadStreams()">🔄 Refresh</button>
+            <br><br>
+            <a href="streamer-advanced.html" class="nav-btn" style="display: inline-block; margin-top: 20px;">
+                🎤 Bắt đầu Stream của bạn
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:7880/api/streaming';
+        
+        // Mock data - trong thực tế sẽ lấy từ API
+        let activeStreams = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStreams();
+            // Auto refresh every 10 seconds
+            setInterval(loadStreams, 10000);
+        });
+
+        async function loadStreams() {
+            const loading = document.getElementById('loading-state');
+            const grid = document.getElementById('streams-grid');
+            const empty = document.getElementById('empty-state');
+
+            loading.style.display = 'block';
+            grid.style.display = 'none';
+            empty.style.display = 'none';
+
+            // Load from localStorage (streams registered by streamers)
+            activeStreams = loadActiveStreamsFromStorage();
+            
+            // Clean up old streams (older than 5 minutes)
+            activeStreams = activeStreams.filter(stream => {
+                const age = Date.now() - stream.startTime;
+                return age < 5 * 60 * 1000; // 5 minutes
+            });
+            
+            // Save cleaned list
+            saveActiveStreamsToStorage(activeStreams);
+
+            setTimeout(() => {
+                loading.style.display = 'none';
+
+                if (activeStreams.length === 0) {
+                    empty.style.display = 'block';
+                } else {
+                    grid.style.display = 'grid';
+                    renderStreams();
+                }
+
+                document.getElementById('stream-count').textContent = activeStreams.length;
+            }, 500);
+        }
+
+        function loadActiveStreamsFromStorage() {
+            try {
+                const stored = localStorage.getItem('livekit_active_streams');
+                return stored ? JSON.parse(stored) : [];
+            } catch (error) {
+                console.error('Error loading streams from storage:', error);
+                return [];
+            }
+        }
+
+        function saveActiveStreamsToStorage(streams) {
+            try {
+                localStorage.setItem('livekit_active_streams', JSON.stringify(streams));
+            } catch (error) {
+                console.error('Error saving streams to storage:', error);
+            }
+        }
+
+        function generateMockStreams() {
+            // Check if there's a streamer actually streaming
+            const hasActiveStream = Math.random() > 0.3; // 70% chance of having streams
+            
+            if (!hasActiveStream) return [];
+
+            const streamTemplates = [
+                {
+                    id: 'stream-1',
+                    title: 'Coding Session - Building React App',
+                    streamer: 'DevMaster',
+                    avatar: '💻',
+                    viewers: Math.floor(Math.random() * 500) + 50,
+                    duration: Math.floor(Math.random() * 120) + 10,
+                    messages: Math.floor(Math.random() * 1000) + 100,
+                    reactions: Math.floor(Math.random() * 500) + 50
+                },
+                {
+                    id: 'stream-2',
+                    title: 'Gaming Live - League of Legends',
+                    streamer: 'ProGamer123',
+                    avatar: '🎮',
+                    viewers: Math.floor(Math.random() * 800) + 100,
+                    duration: Math.floor(Math.random() * 180) + 20,
+                    messages: Math.floor(Math.random() * 2000) + 200,
+                    reactions: Math.floor(Math.random() * 800) + 100
+                },
+                {
+                    id: 'stream-3',
+                    title: 'Music Production Stream',
+                    streamer: 'BeatMaker',
+                    avatar: '🎵',
+                    viewers: Math.floor(Math.random() * 300) + 30,
+                    duration: Math.floor(Math.random() * 90) + 15,
+                    messages: Math.floor(Math.random() * 500) + 50,
+                    reactions: Math.floor(Math.random() * 300) + 40
+                }
+            ];
+
+            // Return 1-3 random streams
+            const numStreams = Math.floor(Math.random() * 3) + 1;
+            return streamTemplates.slice(0, numStreams).map(stream => ({
+                ...stream,
+                viewers: Math.floor(Math.random() * 500) + 50 // Randomize viewers
+            }));
+        }
+
+        function renderStreams() {
+            const grid = document.getElementById('streams-grid');
+            grid.innerHTML = activeStreams.map(stream => createStreamCard(stream)).join('');
+
+            // Add click handlers
+            document.querySelectorAll('.stream-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const streamId = card.dataset.id;
+                    joinStream(streamId);
+                });
+            });
+        }
+
+        function createStreamCard(stream) {
+            const durationFormatted = formatDuration(stream.duration || 0);
+            
+            return `
+                <div class="stream-card" data-id="${stream.id}">
+                    <div class="stream-thumbnail">
+                        <div>${stream.avatar || '🎥'}</div>
+                        <div class="stream-live-badge">
+                            <div class="live-dot"></div>
+                            <span>LIVE</span>
+                        </div>
+                        <div class="stream-viewers">
+                            <span>👁️</span>
+                            <span>${formatNumber(stream.viewers)}</span>
+                        </div>
+                        <div class="play-overlay">▶️</div>
+                    </div>
+                    <div class="stream-info">
+                        <div class="stream-title">${stream.title}</div>
+                        <div class="streamer-info">
+                            <div class="streamer-avatar">${stream.avatar || '🎤'}</div>
+                            <div>
+                                <div class="streamer-name">${stream.streamer}</div>
+                                <div style="font-size: 0.85em; color: #9ca3af;">
+                                    Live for ${durationFormatted}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stream-stats">
+                            <div class="stat-item">
+                                <span>💬</span>
+                                <span>${formatNumber(stream.messages || 0)}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span>❤️</span>
+                                <span>${formatNumber(stream.reactions || 0)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function joinStream(streamId) {
+            // Navigate to viewer page with stream ID
+            window.location.href = `watch-stream.html?stream=${streamId}`;
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K';
+            }
+            return num.toString();
+        }
+
+        function formatDuration(minutes) {
+            if (minutes < 60) {
+                return `${minutes} phút`;
+            }
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            return `${hours}:${mins.toString().padStart(2, '0')} giờ`;
+        }
+    </script>
+</body>
+</html>

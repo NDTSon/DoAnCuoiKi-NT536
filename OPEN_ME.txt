@@ -1,0 +1,98 @@
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║          🚀 HƯỚNG DẪN CHẠY LIVEKIT STREAMING 🚀             ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+⚠️  BẠN ĐANG GẶP LỖI "ERR_CONNECTION_REFUSED"?
+
+➡️  NGUYÊN NHÂN: Server chưa chạy!
+
+═══════════════════════════════════════════════════════════════
+
+✅ GIẢI PHÁP - 3 BƯỚC ĐỂ CHẠY:
+
+┌─────────────────────────────────────────────────────────────┐
+│  BƯỚC 1: MỞ POWERSHELL MỚI                                  │
+└─────────────────────────────────────────────────────────────┘
+  
+  • Nhấn: Windows + X
+  • Chọn: "Windows PowerShell" hoặc "Terminal"
+  • (Phải mở MỚI vì PowerShell cũ chưa nhận Go!)
+
+
+┌─────────────────────────────────────────────────────────────┐
+│  BƯỚC 2: CHẠY SERVER                                        │
+└─────────────────────────────────────────────────────────────┘
+
+  Trong PowerShell, gõ từng dòng:
+
+  cd c:\da-NT536\livekit
+  .\start-server.bat
+
+  ⏳ Đợi đến khi thấy dòng này:
+  
+  ✅ "starting LiveKit server"
+
+
+┌─────────────────────────────────────────────────────────────┐
+│  BƯỚC 3: MỞ DEMO                                            │
+└─────────────────────────────────────────────────────────────┘
+
+  A. Test connection trước:
+     Mở file: examples\test-connection.html
+     Click "Test Connection" → Phải thấy ✅
+
+  B. Nếu test OK, mới mở demo:
+     Mở file: examples\streaming-demo.html
+
+═══════════════════════════════════════════════════════════════
+
+📚 HƯỚNG DẪN CHI TIẾT:
+
+  Mở file này trong browser để xem hướng dẫn đầy đủ:
+  
+  ➡️  examples\index.html
+
+  Hoặc đọc:
+  
+  • COMPLETE_GUIDE.md  - Hướng dẫn đầy đủ nhất
+  • START_HERE.md      - README ngắn gọn
+  • FIX_ERROR.md       - Chi tiết lỗi và cách sửa
+
+═══════════════════════════════════════════════════════════════
+
+🐛 VẪN GẶP LỖI?
+
+  1. Kiểm tra Go: go version
+  2. Kiểm tra server: http://localhost:7880
+  3. Xem log trong PowerShell
+  4. Đọc COMPLETE_GUIDE.md
+
+═══════════════════════════════════════════════════════════════
+
+✅ CHECKLIST:
+
+  □ Mở PowerShell MỚI (không phải cái cũ)
+  □ Chạy: .\start-server.bat
+  □ Thấy "starting LiveKit server"
+  □ Test: http://localhost:7880 (mở được)
+  □ Test: test-connection.html (hiển thị ✅)
+  □ MỚI mở: streaming-demo.html
+
+═══════════════════════════════════════════════════════════════
+
+🎯 QUICK START:
+
+  1. Windows + X → PowerShell
+  2. cd c:\da-NT536\livekit
+  3. .\start-server.bat
+  4. Đợi "starting LiveKit server"
+  5. Mở examples\test-connection.html
+  6. Nếu ✅ → Mở examples\streaming-demo.html
+
+═══════════════════════════════════════════════════════════════
+
+Good luck! 🚀
+
+Nếu vẫn lỗi, đọc COMPLETE_GUIDE.md hoặc hỏi lại tôi!
