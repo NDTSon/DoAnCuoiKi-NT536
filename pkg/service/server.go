@@ -51,6 +51,7 @@ type LivekitServer struct {
 	rtcService   *RTCService
 	whipService  *WHIPService
 	agentService *AgentService
+	httpMux      *http.ServeMux
 	httpServer   *http.Server
 	promServer   *http.Server
 	router       routing.Router
@@ -137,6 +138,7 @@ func NewLivekitServer(conf *config.Config,
 		mux.HandleFunc("/debug/goroutine", s.debugGoroutines)
 		mux.HandleFunc("/debug/rooms", s.debugInfo)
 	}
+	s.httpMux = mux
 
 	xtwirp.RegisterServer(mux, roomServer)
 	xtwirp.RegisterServer(mux, agentDispatchServer)
@@ -146,11 +148,11 @@ func NewLivekitServer(conf *config.Config,
 	rtcService.SetupRoutes(mux)
 	whipService.SetupRoutes(mux)
 	mux.Handle("/agent", agentService)
-	
+
 	// Register Streaming API handlers
 	streamingAPI := NewStreamingAPIService()
 	streamingAPI.RegisterHTTPHandlers(mux)
-	
+
 	mux.HandleFunc("/", s.defaultHandler)
 
 	s.httpServer = &http.Server{
@@ -180,6 +182,11 @@ func NewLivekitServer(conf *config.Config,
 	}
 
 	return
+}
+func (s *LivekitServer) RegisterHTTPHandler(pattern string, handler http.Handler) {
+	if s.httpMux != nil {
+		s.httpMux.Handle(pattern, handler)
+	}
 }
 
 func (s *LivekitServer) Node() *livekit.Node {

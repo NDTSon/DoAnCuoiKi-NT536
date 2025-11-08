@@ -28,14 +28,14 @@ import (
 type NotificationType string
 
 const (
-	NotificationTypeStreamStarted  NotificationType = "stream_started"
-	NotificationTypeStreamEnded    NotificationType = "stream_ended"
-	NotificationTypeNewFollower    NotificationType = "new_follower"
-	NotificationTypeMention        NotificationType = "mention"
-	NotificationTypeReply          NotificationType = "reply"
-	NotificationTypeModerator      NotificationType = "moderator"
-	NotificationTypeGift           NotificationType = "gift"
-	NotificationTypeSystem         NotificationType = "system"
+	NotificationTypeStreamStarted NotificationType = "stream_started"
+	NotificationTypeStreamEnded   NotificationType = "stream_ended"
+	NotificationTypeNewFollower   NotificationType = "new_follower"
+	NotificationTypeMention       NotificationType = "mention"
+	NotificationTypeReply         NotificationType = "reply"
+	NotificationTypeModerator     NotificationType = "moderator"
+	NotificationTypeGift          NotificationType = "gift"
+	NotificationTypeSystem        NotificationType = "system"
 )
 
 // Notification represents a single notification
@@ -89,14 +89,14 @@ const (
 
 // NotificationService manages notifications
 type NotificationService struct {
-	mu                     sync.RWMutex
-	notifications          map[livekit.ParticipantIdentity][]*Notification // userID -> notifications
-	subscriptions          map[livekit.ParticipantIdentity][]*NotificationSubscription // userID -> subscriptions
-	streamerFollowers      map[livekit.ParticipantIdentity][]livekit.ParticipantIdentity // streamerID -> followerIDs
-	onlineUsers            map[livekit.ParticipantIdentity]bool
-	notificationHandlers   map[NotificationChannel][]NotificationHandler
-	logger                 logger.Logger
-	config                 *NotificationConfig
+	mu                   sync.RWMutex
+	notifications        map[livekit.ParticipantIdentity][]*Notification               // userID -> notifications
+	subscriptions        map[livekit.ParticipantIdentity][]*NotificationSubscription   // userID -> subscriptions
+	streamerFollowers    map[livekit.ParticipantIdentity][]livekit.ParticipantIdentity // streamerID -> followerIDs
+	onlineUsers          map[livekit.ParticipantIdentity]bool
+	notificationHandlers map[NotificationChannel][]NotificationHandler
+	logger               logger.Logger
+	config               *NotificationConfig
 }
 
 // NotificationConfig defines notification service configuration

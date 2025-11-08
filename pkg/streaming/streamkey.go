@@ -286,7 +286,7 @@ func (m *StreamKeyManager) CleanupExpiredKeys(ctx context.Context) int {
 	for key, streamKey := range m.keys {
 		if streamKey.ExpiresAt != nil && now.After(*streamKey.ExpiresAt) {
 			delete(m.keys, key)
-			
+
 			// Remove from streamer keys
 			streamerKeys := m.streamerKeys[streamKey.StreamerID]
 			for i, k := range streamerKeys {
@@ -295,7 +295,7 @@ func (m *StreamKeyManager) CleanupExpiredKeys(ctx context.Context) int {
 					break
 				}
 			}
-			
+
 			count++
 		}
 	}

@@ -26,19 +26,19 @@ import (
 
 // ChatMessage represents a single chat message
 type ChatMessage struct {
-	ID          string                      `json:"id"`
-	RoomName    livekit.RoomName            `json:"room_name"`
-	SenderID    livekit.ParticipantIdentity `json:"sender_id"`
-	SenderName  string                      `json:"sender_name"`
-	Content     string                      `json:"content"`
-	Timestamp   time.Time                   `json:"timestamp"`
-	MessageType ChatMessageType             `json:"message_type"`
-	Metadata    map[string]string           `json:"metadata,omitempty"`
-	Emojis      []string                    `json:"emojis,omitempty"`
+	ID             string                        `json:"id"`
+	RoomName       livekit.RoomName              `json:"room_name"`
+	SenderID       livekit.ParticipantIdentity   `json:"sender_id"`
+	SenderName     string                        `json:"sender_name"`
+	Content        string                        `json:"content"`
+	Timestamp      time.Time                     `json:"timestamp"`
+	MessageType    ChatMessageType               `json:"message_type"`
+	Metadata       map[string]string             `json:"metadata,omitempty"`
+	Emojis         []string                      `json:"emojis,omitempty"`
 	MentionedUsers []livekit.ParticipantIdentity `json:"mentioned_users,omitempty"`
-	IsDeleted   bool                        `json:"is_deleted"`
-	IsModerated bool                        `json:"is_moderated"`
-	ReplyTo     *string                     `json:"reply_to,omitempty"`
+	IsDeleted      bool                          `json:"is_deleted"`
+	IsModerated    bool                          `json:"is_moderated"`
+	ReplyTo        *string                       `json:"reply_to,omitempty"`
 }
 
 // ChatMessageType defines the type of chat message
@@ -54,24 +54,24 @@ const (
 
 // ChatRoom represents a chat room for a live stream
 type ChatRoom struct {
-	RoomName     livekit.RoomName            `json:"room_name"`
-	Messages     []*ChatMessage              `json:"messages"`
+	RoomName     livekit.RoomName                                 `json:"room_name"`
+	Messages     []*ChatMessage                                   `json:"messages"`
 	Participants map[livekit.ParticipantIdentity]*ChatParticipant `json:"participants"`
 	Moderators   map[livekit.ParticipantIdentity]bool             `json:"moderators"`
 	BannedUsers  map[livekit.ParticipantIdentity]time.Time        `json:"banned_users"`
-	CreatedAt    time.Time                   `json:"created_at"`
-	Settings     *ChatRoomSettings           `json:"settings"`
+	CreatedAt    time.Time                                        `json:"created_at"`
+	Settings     *ChatRoomSettings                                `json:"settings"`
 	mu           sync.RWMutex
 }
 
 // ChatParticipant represents a participant in chat
 type ChatParticipant struct {
-	Identity    livekit.ParticipantIdentity `json:"identity"`
-	Name        string                      `json:"name"`
-	IsModerator bool                        `json:"is_moderator"`
-	IsMuted     bool                        `json:"is_muted"`
-	JoinedAt    time.Time                   `json:"joined_at"`
-	MessageCount int                        `json:"message_count"`
+	Identity     livekit.ParticipantIdentity `json:"identity"`
+	Name         string                      `json:"name"`
+	IsModerator  bool                        `json:"is_moderator"`
+	IsMuted      bool                        `json:"is_muted"`
+	JoinedAt     time.Time                   `json:"joined_at"`
+	MessageCount int                         `json:"message_count"`
 }
 
 // ChatRoomSettings defines chat room configuration
@@ -88,11 +88,11 @@ type ChatRoomSettings struct {
 
 // ChatService manages all chat rooms
 type ChatService struct {
-	mu             sync.RWMutex
-	rooms          map[livekit.RoomName]*ChatRoom
-	logger         logger.Logger
+	mu              sync.RWMutex
+	rooms           map[livekit.RoomName]*ChatRoom
+	logger          logger.Logger
 	messageHandlers []ChatMessageHandler
-	badWords       []string
+	badWords        []string
 }
 
 // ChatMessageHandler is a callback for new messages

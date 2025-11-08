@@ -26,59 +26,59 @@ import (
 
 // StreamAnalytics contains detailed analytics for a live stream
 type StreamAnalytics struct {
-	RoomName            livekit.RoomName            `json:"room_name"`
-	StreamerID          livekit.ParticipantIdentity `json:"streamer_id"`
-	StartTime           time.Time                   `json:"start_time"`
-	EndTime             *time.Time                  `json:"end_time,omitempty"`
-	Duration            time.Duration               `json:"duration"`
-	
+	RoomName   livekit.RoomName            `json:"room_name"`
+	StreamerID livekit.ParticipantIdentity `json:"streamer_id"`
+	StartTime  time.Time                   `json:"start_time"`
+	EndTime    *time.Time                  `json:"end_time,omitempty"`
+	Duration   time.Duration               `json:"duration"`
+
 	// Viewer metrics
-	TotalViewers        int                         `json:"total_viewers"`
-	PeakViewers         int                         `json:"peak_viewers"`
-	CurrentViewers      int                         `json:"current_viewers"`
-	AverageViewers      float64                     `json:"average_viewers"`
-	UniqueViewers       int                         `json:"unique_viewers"`
-	ViewerRetention     float64                     `json:"viewer_retention"` // percentage
-	AverageWatchTime    time.Duration               `json:"average_watch_time"`
-	
+	TotalViewers     int           `json:"total_viewers"`
+	PeakViewers      int           `json:"peak_viewers"`
+	CurrentViewers   int           `json:"current_viewers"`
+	AverageViewers   float64       `json:"average_viewers"`
+	UniqueViewers    int           `json:"unique_viewers"`
+	ViewerRetention  float64       `json:"viewer_retention"` // percentage
+	AverageWatchTime time.Duration `json:"average_watch_time"`
+
 	// Chat metrics
-	TotalMessages       int                         `json:"total_messages"`
-	UniqueMessagers     int                         `json:"unique_messagers"`
-	MessagesPerMinute   float64                     `json:"messages_per_minute"`
-	
+	TotalMessages     int     `json:"total_messages"`
+	UniqueMessagers   int     `json:"unique_messagers"`
+	MessagesPerMinute float64 `json:"messages_per_minute"`
+
 	// Reaction metrics
-	TotalReactions      int                         `json:"total_reactions"`
-	ReactionsPerMinute  float64                     `json:"reactions_per_minute"`
-	ReactionBreakdown   map[ReactionType]int        `json:"reaction_breakdown"`
-	
+	TotalReactions     int                  `json:"total_reactions"`
+	ReactionsPerMinute float64              `json:"reactions_per_minute"`
+	ReactionBreakdown  map[ReactionType]int `json:"reaction_breakdown"`
+
 	// Technical metrics
-	AverageBitrate      int                         `json:"average_bitrate"` // kbps
-	PeakBitrate         int                         `json:"peak_bitrate"`    // kbps
-	AverageLatency      time.Duration               `json:"average_latency"`
-	BufferingEvents     int                         `json:"buffering_events"`
-	QualityChanges      int                         `json:"quality_changes"`
-	DroppedFrames       int                         `json:"dropped_frames"`
-	
+	AverageBitrate  int           `json:"average_bitrate"` // kbps
+	PeakBitrate     int           `json:"peak_bitrate"`    // kbps
+	AverageLatency  time.Duration `json:"average_latency"`
+	BufferingEvents int           `json:"buffering_events"`
+	QualityChanges  int           `json:"quality_changes"`
+	DroppedFrames   int           `json:"dropped_frames"`
+
 	// Engagement metrics
-	ShareCount          int                         `json:"share_count"`
-	LikeCount           int                         `json:"like_count"`
-	FollowCount         int                         `json:"follow_count"`
-	
+	ShareCount  int `json:"share_count"`
+	LikeCount   int `json:"like_count"`
+	FollowCount int `json:"follow_count"`
+
 	// Geographic distribution
-	ViewersByCountry    map[string]int              `json:"viewers_by_country"`
-	ViewersByRegion     map[string]int              `json:"viewers_by_region"`
-	
+	ViewersByCountry map[string]int `json:"viewers_by_country"`
+	ViewersByRegion  map[string]int `json:"viewers_by_region"`
+
 	// Device/Platform metrics
-	ViewersByPlatform   map[string]int              `json:"viewers_by_platform"`
-	ViewersByDevice     map[string]int              `json:"viewers_by_device"`
-	
+	ViewersByPlatform map[string]int `json:"viewers_by_platform"`
+	ViewersByDevice   map[string]int `json:"viewers_by_device"`
+
 	// Time-series data points
-	ViewerTimeline      []TimeSeriesDataPoint       `json:"viewer_timeline"`
-	ChatTimeline        []TimeSeriesDataPoint       `json:"chat_timeline"`
-	ReactionTimeline    []TimeSeriesDataPoint       `json:"reaction_timeline"`
-	BitrateTimeline     []TimeSeriesDataPoint       `json:"bitrate_timeline"`
-	
-	LastUpdated         time.Time                   `json:"last_updated"`
+	ViewerTimeline   []TimeSeriesDataPoint `json:"viewer_timeline"`
+	ChatTimeline     []TimeSeriesDataPoint `json:"chat_timeline"`
+	ReactionTimeline []TimeSeriesDataPoint `json:"reaction_timeline"`
+	BitrateTimeline  []TimeSeriesDataPoint `json:"bitrate_timeline"`
+
+	LastUpdated time.Time `json:"last_updated"`
 }
 
 // TimeSeriesDataPoint represents a metric at a point in time
@@ -108,11 +108,11 @@ type ViewerSession struct {
 
 // AnalyticsService manages stream analytics
 type AnalyticsService struct {
-	mu               sync.RWMutex
-	streamAnalytics  map[livekit.RoomName]*StreamAnalytics
-	viewerSessions   map[livekit.RoomName]map[livekit.ParticipantIdentity]*ViewerSession
-	logger           logger.Logger
-	config           *AnalyticsConfig
+	mu              sync.RWMutex
+	streamAnalytics map[livekit.RoomName]*StreamAnalytics
+	viewerSessions  map[livekit.RoomName]map[livekit.ParticipantIdentity]*ViewerSession
+	logger          logger.Logger
+	config          *AnalyticsConfig
 }
 
 // AnalyticsConfig defines analytics service configuration

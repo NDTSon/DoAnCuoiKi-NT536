@@ -26,47 +26,47 @@ import (
 
 // VODRecording represents a recorded live stream
 type VODRecording struct {
-	ID              string                      `json:"id"`
-	RoomName        livekit.RoomName            `json:"room_name"`
-	StreamerID      livekit.ParticipantIdentity `json:"streamer_id"`
-	StreamerName    string                      `json:"streamer_name"`
-	Title           string                      `json:"title"`
-	Description     string                      `json:"description"`
-	ThumbnailURL    string                      `json:"thumbnail_url"`
-	VideoURL        string                      `json:"video_url"`
-	FileSize        int64                       `json:"file_size"` // bytes
-	Duration        time.Duration               `json:"duration"`
-	Resolution      string                      `json:"resolution"` // e.g., "1920x1080"
-	Bitrate         int                         `json:"bitrate"`    // kbps
-	Status          VODStatus                   `json:"status"`
-	ViewCount       int64                       `json:"view_count"`
-	LikeCount       int64                       `json:"like_count"`
-	ShareCount      int64                       `json:"share_count"`
-	RecordedAt      time.Time                   `json:"recorded_at"`
-	PublishedAt     *time.Time                  `json:"published_at,omitempty"`
-	ExpiresAt       *time.Time                  `json:"expires_at,omitempty"`
-	IsPublic        bool                        `json:"is_public"`
-	Tags            []string                    `json:"tags,omitempty"`
-	Category        string                      `json:"category,omitempty"`
-	Language        string                      `json:"language,omitempty"`
-	Metadata        map[string]string           `json:"metadata,omitempty"`
+	ID           string                      `json:"id"`
+	RoomName     livekit.RoomName            `json:"room_name"`
+	StreamerID   livekit.ParticipantIdentity `json:"streamer_id"`
+	StreamerName string                      `json:"streamer_name"`
+	Title        string                      `json:"title"`
+	Description  string                      `json:"description"`
+	ThumbnailURL string                      `json:"thumbnail_url"`
+	VideoURL     string                      `json:"video_url"`
+	FileSize     int64                       `json:"file_size"` // bytes
+	Duration     time.Duration               `json:"duration"`
+	Resolution   string                      `json:"resolution"` // e.g., "1920x1080"
+	Bitrate      int                         `json:"bitrate"`    // kbps
+	Status       VODStatus                   `json:"status"`
+	ViewCount    int64                       `json:"view_count"`
+	LikeCount    int64                       `json:"like_count"`
+	ShareCount   int64                       `json:"share_count"`
+	RecordedAt   time.Time                   `json:"recorded_at"`
+	PublishedAt  *time.Time                  `json:"published_at,omitempty"`
+	ExpiresAt    *time.Time                  `json:"expires_at,omitempty"`
+	IsPublic     bool                        `json:"is_public"`
+	Tags         []string                    `json:"tags,omitempty"`
+	Category     string                      `json:"category,omitempty"`
+	Language     string                      `json:"language,omitempty"`
+	Metadata     map[string]string           `json:"metadata,omitempty"`
 	// Analytics
-	AverageViewDuration time.Duration          `json:"average_view_duration"`
-	PeakViewers         int                    `json:"peak_viewers"`
-	ChatMessageCount    int                    `json:"chat_message_count"`
-	ReactionCount       int                    `json:"reaction_count"`
+	AverageViewDuration time.Duration `json:"average_view_duration"`
+	PeakViewers         int           `json:"peak_viewers"`
+	ChatMessageCount    int           `json:"chat_message_count"`
+	ReactionCount       int           `json:"reaction_count"`
 }
 
 // VODStatus represents the status of a VOD recording
 type VODStatus string
 
 const (
-	VODStatusRecording   VODStatus = "recording"
-	VODStatusProcessing  VODStatus = "processing"
-	VODStatusReady       VODStatus = "ready"
-	VODStatusFailed      VODStatus = "failed"
-	VODStatusArchived    VODStatus = "archived"
-	VODStatusDeleted     VODStatus = "deleted"
+	VODStatusRecording  VODStatus = "recording"
+	VODStatusProcessing VODStatus = "processing"
+	VODStatusReady      VODStatus = "ready"
+	VODStatusFailed     VODStatus = "failed"
+	VODStatusArchived   VODStatus = "archived"
+	VODStatusDeleted    VODStatus = "deleted"
 )
 
 // VODPlaybackSession represents a user watching a VOD
@@ -84,25 +84,25 @@ type VODPlaybackSession struct {
 
 // VODService manages video on demand recordings
 type VODService struct {
-	mu               sync.RWMutex
-	recordings       map[string]*VODRecording // recordingID -> Recording
+	mu                 sync.RWMutex
+	recordings         map[string]*VODRecording                 // recordingID -> Recording
 	streamerRecordings map[livekit.ParticipantIdentity][]string // streamerID -> []recordingIDs
-	playbackSessions map[string]*VODPlaybackSession // sessionID -> Session
-	logger           logger.Logger
-	config           *VODConfig
+	playbackSessions   map[string]*VODPlaybackSession           // sessionID -> Session
+	logger             logger.Logger
+	config             *VODConfig
 }
 
 // VODConfig defines VOD service configuration
 type VODConfig struct {
-	StoragePath           string        `json:"storage_path"`
-	MaxRecordingSize      int64         `json:"max_recording_size"` // bytes
-	DefaultRetentionDays  int           `json:"default_retention_days"`
-	AutoPublish           bool          `json:"auto_publish"`
-	GenerateThumbnails    bool          `json:"generate_thumbnails"`
-	EnableTranscoding     bool          `json:"enable_transcoding"`
-	TranscodingQualities  []string      `json:"transcoding_qualities"` // e.g., ["1080p", "720p", "480p"]
-	SessionTimeout        time.Duration `json:"session_timeout"`
-	EnableAnalytics       bool          `json:"enable_analytics"`
+	StoragePath          string        `json:"storage_path"`
+	MaxRecordingSize     int64         `json:"max_recording_size"` // bytes
+	DefaultRetentionDays int           `json:"default_retention_days"`
+	AutoPublish          bool          `json:"auto_publish"`
+	GenerateThumbnails   bool          `json:"generate_thumbnails"`
+	EnableTranscoding    bool          `json:"enable_transcoding"`
+	TranscodingQualities []string      `json:"transcoding_qualities"` // e.g., ["1080p", "720p", "480p"]
+	SessionTimeout       time.Duration `json:"session_timeout"`
+	EnableAnalytics      bool          `json:"enable_analytics"`
 }
 
 // NewVODService creates a new VOD service

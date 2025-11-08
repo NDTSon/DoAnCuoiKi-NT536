@@ -465,10 +465,18 @@
                 <span>LIVE</span>
             </div>
         </div>
-        <div class="viewer-count">
-            <span>👁️</span>
-            <span id="viewer-count">0</span>
-            <span>viewers</span>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div class="viewer-count">
+                <span>👁️</span>
+                <span id="viewer-count">0</span>
+                <span>viewers</span>
+            </div>
+            <div id="user-info" style="display: flex; align-items: center; gap: 10px;">
+                <span id="user-name-display" style="font-weight: 600;">Guest</span>
+                <button class="back-btn" id="btn-login" onclick="openAuthModal()" style="padding: 8px 16px;">
+                    🔐 Đăng nhập
+                </button>
+            </div>
         </div>
     </div>
 
@@ -584,7 +592,105 @@
         const urlParams = new URLSearchParams(window.location.search);
         const streamId = urlParams.get('stream') || 'default-stream';
         const ROOM_NAME = streamId;
-        const USER_ID = 'viewer-' + Math.random().toString(36).substr(2, 9);
+        
+        // User management
+        let USER_ID = null;
+        let USER_NAME = null;
+        let USER_DISPLAY_NAME = null;
+        
+        // Generate unique session ID for this tab (stored in sessionStorage, not localStorage)
+        function getOrCreateSessionID() {
+            let sessionID = sessionStorage.getItem('tab_session_id');
+            if (!sessionID) {
+                sessionID = 'tab-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                sessionStorage.setItem('tab_session_id', sessionID);
+            }
+            return sessionID;
+        }
+        
+        // Initialize user from auth or generate random
+        function initializeUser() {
+            // Always generate unique session ID for this tab
+            const sessionID = getOrCreateSessionID();
+            
+            // Check URL params for auth redirect
+            const urlParams = new URLSearchParams(window.location.search);
+            const authToken = urlParams.get('token');
+            const authName = urlParams.get('name');
+            const authEmail = urlParams.get('email');
+            
+            if (authToken && authName) {
+                // User just logged in/registered
+                localStorage.setItem('auth_token', authToken);
+                localStorage.setItem('user_name', authName);
+                localStorage.setItem('user_email', authEmail || '');
+                USER_DISPLAY_NAME = authName;
+                // Use session ID to ensure each tab is unique, but prefix with user info
+                USER_ID = 'user-' + (authEmail?.split('@')[0] || 'user') + '-' + sessionID;
+                
+                // Remove auth params from URL to prevent redirect loop
+                urlParams.delete('token');
+                urlParams.delete('name');
+                urlParams.delete('email');
+                const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+                // Use replaceState to avoid adding to history
+                window.history.replaceState({}, '', newUrl);
+            } else {
+                // Check localStorage for existing auth
+                const storedToken = localStorage.getItem('auth_token');
+                const storedName = localStorage.getItem('user_name');
+                
+                if (storedToken && storedName) {
+                    USER_DISPLAY_NAME = storedName;
+                    // Use session ID to ensure each tab is unique
+                    const emailPrefix = localStorage.getItem('user_email')?.split('@')[0] || 'user';
+                    USER_ID = 'user-' + emailPrefix + '-' + sessionID;
+                } else {
+                    // Generate random guest name
+                    const guestNames = ['Người xem', 'Viewer', 'Khách', 'Guest', 'Người dùng'];
+                    USER_DISPLAY_NAME = guestNames[Math.floor(Math.random() * guestNames.length)] + '-' + Math.random().toString(36).substr(2, 6);
+                    USER_ID = 'viewer-' + sessionID;
+                }
+            }
+            
+            // Update UI
+            document.getElementById('user-name-display').textContent = USER_DISPLAY_NAME;
+            const loginBtn = document.getElementById('btn-login');
+            if (localStorage.getItem('auth_token')) {
+                loginBtn.textContent = '👤 ' + USER_DISPLAY_NAME;
+                loginBtn.onclick = () => {
+                    if (confirm('Bạn muốn đăng xuất?')) {
+                        localStorage.removeItem('auth_token');
+                        localStorage.removeItem('user_name');
+                        localStorage.removeItem('user_email');
+                        sessionStorage.removeItem('tab_session_id');
+                        location.reload();
+                    }
+                };
+            }
+        }
+        
+        function openAuthModal() {
+            // Detect if running from file:// or http://
+            const isFileProtocol = window.location.protocol === 'file:';
+            
+            let returnUrl;
+            let authUrl;
+            
+            if (isFileProtocol) {
+                // Running from file:// - use relative path
+                const currentPath = window.location.pathname;
+                const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+                authUrl = basePath + '/auth.html';
+                returnUrl = encodeURIComponent(window.location.href);
+            } else {
+                // Running from HTTP server
+                returnUrl = encodeURIComponent(window.location.href);
+                authUrl = '/examples/auth.html';
+            }
+            
+            window.location.href = `${authUrl}?return=${returnUrl}`;
+        }
 
         // State
         let chatWebSocket = null;
@@ -602,8 +708,21 @@
             reactions: 0
         };
 
+        // Flag to prevent multiple initializations
+        let isInitialized = false;
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
+            // Prevent multiple initializations
+            if (isInitialized) {
+                console.warn('⚠️ Already initialized, skipping...');
+                return;
+            }
+            isInitialized = true;
+            
+            // Initialize user first
+            initializeUser();
+            
             // Check if LiveKit SDK loaded
             if (typeof LivekitClient === 'undefined') {
                 console.error('❌ LiveKit SDK not loaded!');
@@ -757,6 +876,11 @@
                 // Step 2: Get access token from server
                 updateConnectionStatus('connecting');
                 
+                // Ensure USER_ID is set
+                if (!USER_ID) {
+                    USER_ID = 'viewer-' + Math.random().toString(36).substr(2, 9);
+                }
+                
                 const tokenResponse = await fetch(`${API_URL}/token`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -834,11 +958,13 @@
                         const data = JSON.parse(text);
                         
                         if (data.type === 'chat') {
-                            console.log('📨 Chat via LiveKit from:', participant?.identity);
+                            console.log('📨 Chat via LiveKit from:', data.sender_name || participant?.identity);
+                            // Always use sender_name from message data, not participant.identity
+                            // participant.identity is USER_ID, not display name
                             addChatMessage({
-                                sender_name: participant?.identity || data.sender_name || 'Unknown',
+                                sender_name: data.sender_name || 'Unknown',
                                 content: data.content,
-                                timestamp: data.timestamp
+                                timestamp: data.timestamp || new Date().toISOString()
                             });
                             stats.messages++;
                             updateStats();
@@ -916,16 +1042,26 @@
 
             if (!content) return;
 
+            // Ensure USER_DISPLAY_NAME is set
+            if (!USER_DISPLAY_NAME) {
+                const storedName = localStorage.getItem('user_name');
+                if (storedName) {
+                    USER_DISPLAY_NAME = storedName;
+                } else {
+                    USER_DISPLAY_NAME = 'Guest-' + Math.random().toString(36).substr(2, 6);
+                }
+            }
+
             try {
                 // Send via LiveKit DataChannel instead of WebSocket
                 if (livekitRoom && livekitRoom.state === 'connected') {
                     console.log('📤 Preparing to send chat via LiveKit...');
                     console.log('Room state:', livekitRoom.state);
-                    console.log('Local participant:', livekitRoom.localParticipant?.identity);
+                    console.log('Sender name:', USER_DISPLAY_NAME);
                     
                     const message = {
                         type: 'chat',
-                        sender_name: 'Viewer-' + USER_ID.substr(-4),
+                        sender_name: USER_DISPLAY_NAME, // Always use display name, not USER_ID
                         content: content,
                         timestamp: new Date().toISOString()
                     };
@@ -966,7 +1102,7 @@
                     const message = {
                         room_name: ROOM_NAME,
                         sender_id: USER_ID,
-                        sender_name: 'Viewer-' + USER_ID.substr(-4),
+                        sender_name: USER_DISPLAY_NAME, // Always use display name
                         content: content,
                         message_type: 'text',
                         timestamp: new Date().toISOString()
@@ -983,12 +1119,22 @@
         }
 
         async function sendReaction(type) {
+            // Ensure USER_DISPLAY_NAME is set
+            if (!USER_DISPLAY_NAME) {
+                const storedName = localStorage.getItem('user_name');
+                if (storedName) {
+                    USER_DISPLAY_NAME = storedName;
+                } else {
+                    USER_DISPLAY_NAME = 'Guest-' + Math.random().toString(36).substr(2, 6);
+                }
+            }
+
             try {
                 // Send via LiveKit DataChannel
                 if (livekitRoom && livekitRoom.state === 'connected') {
                     const reaction = {
                         type: 'reaction',
-                        user_name: 'Viewer-' + USER_ID.substr(-4),
+                        user_name: USER_DISPLAY_NAME, // Always use display name
                         reaction_type: type,
                         x: Math.random() * 0.8 + 0.1,
                         y: 0.8,
@@ -1013,7 +1159,7 @@
                     const reaction = {
                         room_name: ROOM_NAME,
                         user_id: USER_ID,
-                        user_name: 'Viewer-' + USER_ID.substr(-4),
+                        user_name: USER_DISPLAY_NAME, // Always use display name
                         reaction_type: type,
                         x: Math.random() * 0.8 + 0.1,
                         y: 0.8,

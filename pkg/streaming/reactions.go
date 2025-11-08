@@ -28,26 +28,26 @@ import (
 type ReactionType string
 
 const (
-	ReactionTypeLike  ReactionType = "like"    // 👍
-	ReactionTypeHeart ReactionType = "heart"   // ❤️
-	ReactionTypeWow   ReactionType = "wow"     // 😮
-	ReactionTypeLaugh ReactionType = "laugh"   // 😂
-	ReactionTypeSad   ReactionType = "sad"     // 😢
-	ReactionTypeFire  ReactionType = "fire"    // 🔥
-	ReactionTypeClap  ReactionType = "clap"    // 👏
-	ReactionTypeParty ReactionType = "party"   // 🎉
+	ReactionTypeLike  ReactionType = "like"  // 👍
+	ReactionTypeHeart ReactionType = "heart" // ❤️
+	ReactionTypeWow   ReactionType = "wow"   // 😮
+	ReactionTypeLaugh ReactionType = "laugh" // 😂
+	ReactionTypeSad   ReactionType = "sad"   // 😢
+	ReactionTypeFire  ReactionType = "fire"  // 🔥
+	ReactionTypeClap  ReactionType = "clap"  // 👏
+	ReactionTypeParty ReactionType = "party" // 🎉
 )
 
 // Reaction represents a single reaction from a user
 type Reaction struct {
-	ID           string                      `json:"id"`
-	RoomName     livekit.RoomName            `json:"room_name"`
-	UserID       livekit.ParticipantIdentity `json:"user_id"`
-	UserName     string                      `json:"user_name"`
-	Type         ReactionType                `json:"type"`
-	Timestamp    time.Time                   `json:"timestamp"`
-	Metadata     map[string]string           `json:"metadata,omitempty"`
-	Position     *ReactionPosition           `json:"position,omitempty"` // For animated reactions on screen
+	ID        string                      `json:"id"`
+	RoomName  livekit.RoomName            `json:"room_name"`
+	UserID    livekit.ParticipantIdentity `json:"user_id"`
+	UserName  string                      `json:"user_name"`
+	Type      ReactionType                `json:"type"`
+	Timestamp time.Time                   `json:"timestamp"`
+	Metadata  map[string]string           `json:"metadata,omitempty"`
+	Position  *ReactionPosition           `json:"position,omitempty"` // For animated reactions on screen
 }
 
 // ReactionPosition defines where a reaction appears on screen
@@ -58,30 +58,30 @@ type ReactionPosition struct {
 
 // ReactionStats tracks reaction statistics for a stream
 type ReactionStats struct {
-	RoomName      livekit.RoomName       `json:"room_name"`
-	TotalReactions int                   `json:"total_reactions"`
-	ReactionCounts map[ReactionType]int  `json:"reaction_counts"`
-	TopReactors   []*TopReactor          `json:"top_reactors"`
+	RoomName        livekit.RoomName     `json:"room_name"`
+	TotalReactions  int                  `json:"total_reactions"`
+	ReactionCounts  map[ReactionType]int `json:"reaction_counts"`
+	TopReactors     []*TopReactor        `json:"top_reactors"`
 	RecentReactions []*Reaction          `json:"recent_reactions"`
-	LastUpdated   time.Time              `json:"last_updated"`
+	LastUpdated     time.Time            `json:"last_updated"`
 }
 
 // TopReactor represents a user who has reacted the most
 type TopReactor struct {
-	UserID       livekit.ParticipantIdentity `json:"user_id"`
-	UserName     string                      `json:"user_name"`
-	ReactionCount int                        `json:"reaction_count"`
+	UserID        livekit.ParticipantIdentity `json:"user_id"`
+	UserName      string                      `json:"user_name"`
+	ReactionCount int                         `json:"reaction_count"`
 }
 
 // ReactionRoom manages reactions for a live stream room
 type ReactionRoom struct {
-	RoomName       livekit.RoomName            `json:"room_name"`
-	Reactions      []*Reaction                 `json:"reactions"`
-	Stats          *ReactionStats              `json:"stats"`
-	UserReactions  map[livekit.ParticipantIdentity][]*Reaction `json:"user_reactions"`
-	RateLimits     map[livekit.ParticipantIdentity]*RateLimit  `json:"rate_limits"`
-	CreatedAt      time.Time                   `json:"created_at"`
-	mu             sync.RWMutex
+	RoomName      livekit.RoomName                            `json:"room_name"`
+	Reactions     []*Reaction                                 `json:"reactions"`
+	Stats         *ReactionStats                              `json:"stats"`
+	UserReactions map[livekit.ParticipantIdentity][]*Reaction `json:"user_reactions"`
+	RateLimits    map[livekit.ParticipantIdentity]*RateLimit  `json:"rate_limits"`
+	CreatedAt     time.Time                                   `json:"created_at"`
+	mu            sync.RWMutex
 }
 
 // RateLimit tracks reaction rate limiting per user
@@ -93,22 +93,22 @@ type RateLimit struct {
 
 // ReactionService manages reactions across all stream rooms
 type ReactionService struct {
-	mu              sync.RWMutex
-	rooms           map[livekit.RoomName]*ReactionRoom
-	logger          logger.Logger
+	mu               sync.RWMutex
+	rooms            map[livekit.RoomName]*ReactionRoom
+	logger           logger.Logger
 	reactionHandlers []ReactionHandler
-	config          *ReactionConfig
+	config           *ReactionConfig
 }
 
 // ReactionConfig defines reaction service configuration
 type ReactionConfig struct {
-	MaxReactionsPerMinute  int           `json:"max_reactions_per_minute"`
-	MaxReactionsPerSecond  int           `json:"max_reactions_per_second"`
-	ReactionTTL            time.Duration `json:"reaction_ttl"`
-	EnableRateLimit        bool          `json:"enable_rate_limit"`
-	EnableAnimation        bool          `json:"enable_animation"`
-	MaxRecentReactions     int           `json:"max_recent_reactions"`
-	EnableLeaderboard      bool          `json:"enable_leaderboard"`
+	MaxReactionsPerMinute int           `json:"max_reactions_per_minute"`
+	MaxReactionsPerSecond int           `json:"max_reactions_per_second"`
+	ReactionTTL           time.Duration `json:"reaction_ttl"`
+	EnableRateLimit       bool          `json:"enable_rate_limit"`
+	EnableAnimation       bool          `json:"enable_animation"`
+	MaxRecentReactions    int           `json:"max_recent_reactions"`
+	EnableLeaderboard     bool          `json:"enable_leaderboard"`
 }
 
 // ReactionHandler is a callback for new reactions
@@ -369,7 +369,7 @@ func (rs *ReactionService) CleanupOldReactions(ctx context.Context) int {
 
 	for _, room := range rs.rooms {
 		room.mu.Lock()
-		
+
 		// Filter reactions
 		validReactions := make([]*Reaction, 0)
 		for _, reaction := range room.Reactions {
@@ -432,7 +432,7 @@ func (rs *ReactionService) checkRateLimit(room *ReactionRoom, userID livekit.Par
 
 func (rs *ReactionService) updateRateLimit(room *ReactionRoom, userID livekit.ParticipantIdentity) {
 	now := time.Now()
-	
+
 	rateLimit, exists := room.RateLimits[userID]
 	if !exists {
 		rateLimit = &RateLimit{

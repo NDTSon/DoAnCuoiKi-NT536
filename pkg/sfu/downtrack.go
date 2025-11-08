@@ -278,6 +278,7 @@ type DownTrack struct {
 	payloadType       atomic.Uint32
 	payloadTypeRTX    atomic.Uint32
 	sequencer         *sequencer
+	_                 uint32 // padding to ensure 8-byte alignment for rtxSequenceNumber on Windows
 	rtxSequenceNumber atomic.Uint64
 
 	receiverLock sync.RWMutex

@@ -15,27 +15,35 @@
 package main
 
 import (
+	"bufio"
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"math/rand"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
 	"runtime/pprof"
+	"strings"
 	"syscall"
 	"time"
 
 	"github.com/urfave/cli/v3"
 
-	"github.com/livekit/livekit-server/pkg/rtc"
-	"github.com/livekit/livekit-server/pkg/telemetry/prometheus"
-	"github.com/livekit/protocol/logger"
+	appauth "github.com/livekit/livekit-server/pkg/auth"
+	apphandler "github.com/livekit/livekit-server/pkg/handler"
+	"github.com/livekit/livekit-server/pkg/storage"
 
 	"github.com/livekit/livekit-server/pkg/config"
 	"github.com/livekit/livekit-server/pkg/routing"
+	"github.com/livekit/livekit-server/pkg/rtc"
 	"github.com/livekit/livekit-server/pkg/service"
+	"github.com/livekit/livekit-server/pkg/telemetry/prometheus"
 	"github.com/livekit/livekit-server/version"
+	"github.com/livekit/protocol/logger"
 )
 
 var baseFlags = []cli.Flag{
@@ -58,7 +66,7 @@ var baseFlags = []cli.Flag{
 	},
 	&cli.StringFlag{
 		Name:    "keys",
-		Usage:   "api keys (key: secret\\n)",
+		Usage:   "api keys (key: secret\n)",
 		Sources: cli.EnvVars("LIVEKIT_KEYS"),
 	},
 	&cli.StringFlag{
@@ -253,10 +261,46 @@ func startServer(_ context.Context, c *cli.Command) error {
 	}
 
 	// validate API key length
-	err = conf.ValidateKeys()
+	if err = conf.ValidateKeys(); err != nil {
+		return err
+	}
+
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		// Try to load from local env file as a fallback for local development
+		if err := loadEnvFromFile("config/local.env"); err == nil {
+			dbURL = os.Getenv("DATABASE_URL")
+		}
+	}
+	if dbURL == "" {
+		return errors.New("DATABASE_URL not set")
+	}
+
+	db, err := storage.NewDB(dbURL)
 	if err != nil {
 		return err
 	}
+	defer db.Close()
+
+	userRepo := storage.NewUserRepository(db)
+	authService := appauth.NewService(userRepo)
+
+	issuer := "livekit-local"
+	secret := conf.Keys["key1"]
+	if secret == "" {
+		// fall back to any available secret
+		for _, s := range conf.Keys {
+			secret = s
+			break
+		}
+	}
+	if secret == "" {
+		return errors.New("no API key secret configured")
+	}
+	tokenGenerator := appauth.NewTokenGenerator(issuer, secret)
+
+	authHandler := apphandler.NewAuthHandler(authService, tokenGenerator)
+	authMiddleware := apphandler.NewAuthMiddleware(tokenGenerator)
 
 	if cpuProfile := c.String("cpuprofile"); cpuProfile != "" {
 		if f, err := os.Create(cpuProfile); err != nil {
@@ -300,6 +344,15 @@ func startServer(_ context.Context, c *cli.Command) error {
 		return err
 	}
 
+	server.RegisterHTTPHandler("/api/register", http.HandlerFunc(authHandler.Register))
+	server.RegisterHTTPHandler("/api/login", http.HandlerFunc(authHandler.Login))
+	server.RegisterHTTPHandler("/api/profile", authMiddleware.Authorize(http.HandlerFunc(handleProfile)))
+	// Serve static files from examples directory
+	fs := http.FileServer(http.Dir("examples"))
+	server.RegisterHTTPHandler("/examples/", http.StripPrefix("/examples/", fs))
+	// Also serve auth.html via /auth/ for convenience
+	server.RegisterHTTPHandler("/auth/", http.StripPrefix("/auth/", fs))
+
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
@@ -313,6 +366,42 @@ func startServer(_ context.Context, c *cli.Command) error {
 	}()
 
 	return server.Start()
+}
+
+// loadEnvFromFile loads KEY=VALUE lines from a .env-like file (no export, no quotes)
+func loadEnvFromFile(path string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		if idx := strings.IndexByte(line, '='); idx > 0 {
+			key := strings.TrimSpace(line[:idx])
+			val := strings.TrimSpace(line[idx+1:])
+			_ = os.Setenv(key, val)
+		}
+	}
+	return scanner.Err()
+}
+
+func handleProfile(w http.ResponseWriter, r *http.Request) {
+	userID, ok := apphandler.UserIDFromContext(r.Context())
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	resp := map[string]string{
+		"userId": userID,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(resp)
 }
 
 func getConfigString(configFile string, inConfigBody string) (string, error) {
