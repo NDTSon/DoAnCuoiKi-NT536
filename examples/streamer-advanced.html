@@ -118,38 +118,6 @@
             gap: 20px;
         }
 
-        .stream-key-section {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border: 2px solid #0ea5e9;
-            border-radius: 12px;
-            padding: 20px;
-        }
-
-        .stream-key-section h3 {
-            color: #0c4a6e;
-            margin-bottom: 15px;
-            font-size: 1.2em;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .key-display {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .key-input {
-            flex: 1;
-            padding: 12px;
-            border: 2px solid #0ea5e9;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            background: white;
-        }
-
         .btn {
             padding: 12px 24px;
             border: none;
@@ -720,19 +688,6 @@
                     </div>
                 </div>
 
-                <!-- Stream Key Section -->
-                <div class="stream-key-section">
-                    <h3>🔑 Stream Key</h3>
-                    <div class="key-display">
-                        <input type="text" class="key-input" id="stream-key" readonly placeholder="Click 'Generate Key' để tạo stream key">
-                        <button class="btn btn-primary" id="btn-generate-key">🔄 Generate Key</button>
-                        <button class="btn btn-secondary" id="btn-copy-key">📋 Copy</button>
-                    </div>
-                    <p style="color: #0c4a6e; font-size: 0.9em;">
-                        ⚠️ Lưu ý: Không chia sẻ stream key với người khác. Dùng key này để kết nối từ OBS hoặc phần mềm streaming.
-                    </p>
-                </div>
-
                 <!-- Video Container -->
                 <div class="video-container">
                     <video id="main-video" autoplay playsinline muted></video>
@@ -948,8 +903,6 @@
 
         function setupEventListeners() {
             // Stream controls
-            document.getElementById('btn-generate-key').addEventListener('click', generateStreamKey);
-            document.getElementById('btn-copy-key').addEventListener('click', copyStreamKey);
             document.getElementById('btn-start-stream').addEventListener('click', startStream);
             document.getElementById('btn-stop-stream').addEventListener('click', stopStream);
             document.getElementById('btn-screen-share').addEventListener('click', shareScreen);
@@ -971,42 +924,6 @@
             document.querySelectorAll('.quality-btn').forEach(btn => {
                 btn.addEventListener('click', () => selectQuality(btn));
             });
-        }
-
-        async function generateStreamKey() {
-            try {
-                const response = await fetch(`${API_URL}/keys/generate`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        streamer_id: USER_ID,
-                        room_name: ROOM_NAME
-                    })
-                });
-
-                if (!response.ok) throw new Error('Failed to generate stream key');
-
-                const result = await response.json();
-                const streamKey = result.stream_key || result.key || 'key_' + Math.random().toString(36).substr(2, 16);
-                
-                document.getElementById('stream-key').value = streamKey;
-                addNotification('✅ Stream key generated successfully', 'success');
-            } catch (error) {
-                console.error('Error generating stream key:', error);
-                addNotification('❌ Failed to generate stream key', 'error');
-            }
-        }
-
-        function copyStreamKey() {
-            const keyInput = document.getElementById('stream-key');
-            if (!keyInput.value) {
-                addNotification('⚠️ Generate a stream key first', 'warning');
-                return;
-            }
-
-            keyInput.select();
-            document.execCommand('copy');
-            addNotification('✅ Stream key copied to clipboard', 'success');
         }
 
         // Register stream in localStorage for directory
@@ -1139,21 +1056,22 @@
                 
                 // Setup room event listeners
                 livekitRoom.on(LivekitClient.RoomEvent.ParticipantConnected, (participant) => {
-                    // Count actual remote participants instead of incrementing
+                    // Count actual remote participants only (viewers)
                     const actualCount = Array.from(livekitRoom.remoteParticipants.values()).length;
-                    console.log('✅ Viewer joined:', participant.identity, '| Actual viewers in room:', actualCount);
+                    console.log('✅ Viewer joined:', participant.identity, '| Actual viewers:', actualCount);
                     stats.viewers = actualCount;
                     stats.peak = Math.max(stats.peak, stats.viewers);
                     updateStats();
-                    addNotification(`👤 ${participant.identity} joined`, 'info');
+                    addNotification(`👤 Viewer joined`, 'info');
                 });
 
                 livekitRoom.on(LivekitClient.RoomEvent.ParticipantDisconnected, (participant) => {
-                    // Count actual remote participants instead of decrementing
+                    // Count actual remote participants only (viewers)
                     const actualCount = Array.from(livekitRoom.remoteParticipants.values()).length;
-                    console.log('❌ Viewer left:', participant.identity, '| Actual viewers in room:', actualCount);
+                    console.log('❌ Viewer left:', participant.identity, '| Actual viewers:', actualCount);
                     stats.viewers = actualCount;
                     updateStats();
+                    addNotification(`👤 Viewer left`, 'info');
                 });
 
                 // Listen for data messages from viewers (chat/reactions via LiveKit)
@@ -1217,10 +1135,14 @@
                 await livekitRoom.connect(LIVEKIT_URL, token);
                 console.log('✅ Connected to LiveKit room:', ROOM_NAME);
                 
-                // Log initial participant count
-                const initialViewers = Array.from(livekitRoom.remoteParticipants.values()).length;
-                console.log('📊 Initial remote participants:', initialViewers);
-                console.log('📊 Current stats.viewers:', stats.viewers);
+                // Initialize viewer count - wait for participants to be ready
+                setTimeout(() => {
+                    const remoteCount = Array.from(livekitRoom.remoteParticipants.values()).length;
+                    stats.viewers = remoteCount;
+                    stats.peak = Math.max(stats.peak, stats.viewers);
+                    updateStats();
+                    console.log('📊 Initial viewer count:', stats.viewers, 'remote participants');
+                }, 500);
 
                 // Step 5: Publish tracks
                 addNotification('📡 Publishing stream...', 'info');
@@ -1439,38 +1361,73 @@
             if (!content) return;
 
             try {
-                await fetch(`${API_URL}/chat/send`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        room_name: ROOM_NAME,
-                        sender_id: USER_ID,
-                        sender_name: 'Streamer',
+                // Send via LiveKit DataChannel instead of HTTP API
+                if (livekitRoom && livekitRoom.state === 'connected') {
+                    console.log('📤 Sending chat via LiveKit DataChannel...');
+                    
+                    const message = {
+                        type: 'chat',
+                        sender_name: 'Streamer', // Display name
                         content: content,
-                        message_type: 'text'
-                    })
-                });
+                        timestamp: new Date().toISOString()
+                    };
 
-                input.value = '';
+                    const encoder = new TextEncoder();
+                    const data = encoder.encode(JSON.stringify(message));
+                    
+                    // Send to all participants via DataChannel
+                    await livekitRoom.localParticipant.publishData(data, { reliable: true });
+                    
+                    console.log('✅ Chat sent via LiveKit DataChannel');
+                    
+                    input.value = '';
+                    
+                    // Add to local chat immediately
+                    addChatMessage(message);
+                    stats.messages++;
+                    updateStats();
+                    
+                } else {
+                    console.warn('⚠️ LiveKit room not connected. Cannot send chat.');
+                    addNotification('❌ Not connected to room', 'error');
+                }
             } catch (error) {
                 console.error('Error sending message:', error);
+                addNotification('❌ Failed to send message', 'error');
             }
         }
 
         async function sendReaction(type) {
             try {
-                await fetch(`${API_URL}/reactions/send`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        room_name: ROOM_NAME,
-                        user_id: USER_ID,
+                // Send via LiveKit DataChannel instead of HTTP API
+                if (livekitRoom && livekitRoom.state === 'connected') {
+                    console.log('📤 Sending reaction via LiveKit DataChannel:', type);
+                    
+                    const reaction = {
+                        type: 'reaction',
                         user_name: 'Streamer',
                         reaction_type: type,
                         x: Math.random() * 0.8 + 0.1,
-                        y: 0.8
-                    })
-                });
+                        y: 0.8,
+                        timestamp: new Date().toISOString()
+                    };
+
+                    const encoder = new TextEncoder();
+                    const data = encoder.encode(JSON.stringify(reaction));
+                    
+                    // Send to all participants via DataChannel
+                    await livekitRoom.localParticipant.publishData(data, { reliable: false });
+                    
+                    console.log('✅ Reaction sent via LiveKit DataChannel');
+                    
+                    // Show locally
+                    showReactionAnimation(reaction);
+                    stats.reactions++;
+                    updateStats();
+                    
+                } else {
+                    console.warn('⚠️ LiveKit room not connected. Cannot send reaction.');
+                }
             } catch (error) {
                 console.error('Error sending reaction:', error);
             }
@@ -1617,15 +1574,6 @@
                 durationInterval = null;
             }
         }
-
-        // Simulate viewers joining
-        setInterval(() => {
-            if (isStreaming && Math.random() > 0.7) {
-                stats.viewers += Math.floor(Math.random() * 3);
-                if (stats.viewers > stats.peak) stats.peak = stats.viewers;
-                updateStats();
-            }
-        }, 5000);
 
         // Reset rate counters every minute
         setInterval(() => {
