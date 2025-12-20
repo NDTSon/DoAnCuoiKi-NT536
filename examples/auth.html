@@ -1,10 +1,22 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Đăng nhập / Đăng ký - LiveKit</title>
+  <title>Đăng nhập / Đăng ký - StreamG8</title>
   <style>
+    :root {
+      --twitch-purple: #9147ff;
+      --twitch-purple-hover: #772ce8;
+      --bg-body: #0e0e10;
+      --bg-surface: #18181b;
+      --bg-input: #0e0e10;
+      --text-base: #efeff1;
+      --text-alt: #adadb8;
+      --border-color: #303032;
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -12,8 +24,9 @@
     }
 
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: 'Inter', 'Roobert', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background-color: var(--bg-body);
+      color: var(--text-base);
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -22,46 +35,45 @@
     }
 
     .auth-container {
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      overflow: hidden;
-      max-width: 450px;
+      background: var(--bg-surface);
+      border-radius: 8px;
+      /* box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); */
       width: 100%;
-      animation: slideUp 0.4s ease-out;
-    }
-
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      max-width: 400px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
     }
 
     .auth-header {
-      background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
-      padding: 40px 30px;
+      padding: 30px 30px 10px 30px;
       text-align: center;
-      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
     }
 
-    .auth-header h1 {
-      font-size: 2em;
-      margin-bottom: 10px;
-      font-weight: 700;
+    /* Logo Styling */
+    .logo-icon {
+      width: 60px;
+      height: 60px;
+    }
+
+    .logo-text {
+      font-size: 1.8em;
+      font-weight: 800;
+      color: var(--twitch-purple);
+      letter-spacing: -1px;
     }
 
     .auth-header p {
-      opacity: 0.9;
+      color: var(--text-alt);
       font-size: 0.95em;
+      margin-top: 5px;
     }
 
     .auth-body {
-      padding: 40px 30px;
+      padding: 20px 30px 40px 30px;
     }
 
     .form-group {
@@ -71,43 +83,49 @@
     .form-group label {
       display: block;
       margin-bottom: 8px;
-      color: #374151;
-      font-weight: 600;
-      font-size: 0.9em;
+      color: var(--text-base);
+      font-weight: 700;
+      font-size: 0.85em;
     }
 
     .form-group input {
       width: 100%;
-      padding: 14px 16px;
-      border: 2px solid #e5e7eb;
-      border-radius: 10px;
-      font-size: 1em;
-      transition: all 0.3s;
-      background: #f9fafb;
+      padding: 10px 12px;
+      border: 2px solid var(--border-color);
+      border-radius: 4px;
+      font-size: 0.95em;
+      background: var(--bg-input);
+      color: var(--text-base);
+      transition: all 0.2s;
     }
 
     .form-group input:focus {
       outline: none;
-      border-color: #ec4899;
-      background: white;
-      box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+      border-color: var(--twitch-purple);
+      background: #000;
     }
 
+    .form-group input::placeholder {
+      color: #555;
+    }
+
+    /* Tabs for Login/Register switching aesthetic */
     .btn-group {
       display: flex;
+      flex-direction: column;
       gap: 12px;
       margin-top: 30px;
     }
 
     .btn {
-      flex: 1;
-      padding: 14px 20px;
+      width: 100%;
+      padding: 10px 15px;
       border: none;
-      border-radius: 10px;
-      font-size: 1em;
-      font-weight: 600;
+      border-radius: 4px;
+      font-size: 0.95em;
+      font-weight: 700;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: background-color 0.2s;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -115,56 +133,54 @@
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+      background: var(--twitch-purple);
       color: white;
     }
 
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(236, 72, 153, 0.4);
+    .btn-primary:hover:not(:disabled) {
+      background: var(--twitch-purple-hover);
     }
 
-    .btn-primary:active {
-      transform: translateY(0);
-    }
-
+    /* Simulate "Secondary" as a less prominent button or outline */
     .btn-secondary {
-      background: #f3f4f6;
-      color: #374151;
+      background: #35353b;
+      color: var(--text-base);
     }
 
     .btn-secondary:hover {
-      background: #e5e7eb;
+      background: #45454b;
     }
 
     .btn:disabled {
-      opacity: 0.6;
+      opacity: 0.5;
       cursor: not-allowed;
-      transform: none !important;
     }
 
+    /* Messages */
     .message {
-      padding: 12px 16px;
-      border-radius: 10px;
+      padding: 10px;
+      border-radius: 4px;
       margin-bottom: 20px;
       font-size: 0.9em;
       display: none;
+      text-align: center;
     }
 
     .message.success {
-      background: #d1fae5;
-      color: #065f46;
-      border: 1px solid #6ee7b7;
+      background: rgba(0, 255, 0, 0.1);
+      color: #00ff88;
+      border: 1px solid #00ff88;
       display: block;
     }
 
     .message.error {
-      background: #fee2e2;
-      color: #991b1b;
-      border: 1px solid #fca5a5;
+      background: rgba(255, 0, 0, 0.1);
+      color: #ff5555;
+      border: 1px solid #ff5555;
       display: block;
     }
 
+    /* Spinner */
     .loading {
       display: inline-block;
       width: 16px;
@@ -176,14 +192,16 @@
     }
 
     @keyframes spin {
-      to { transform: rotate(360deg); }
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     .divider {
       text-align: center;
-      margin: 30px 0;
-      color: #9ca3af;
-      font-size: 0.9em;
+      margin: 20px 0;
+      color: var(--text-alt);
+      font-size: 0.8em;
       position: relative;
     }
 
@@ -194,7 +212,7 @@
       top: 50%;
       width: 40%;
       height: 1px;
-      background: #e5e7eb;
+      background: var(--border-color);
     }
 
     .divider::before {
@@ -204,47 +222,48 @@
     .divider::after {
       right: 0;
     }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 15px;
+      color: var(--twitch-purple);
+      text-decoration: none;
+      font-size: 0.9em;
+      font-weight: 600;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
   </style>
   <script>
     let isLoading = false;
 
     // Get return URL from query params
     const urlParams = new URLSearchParams(window.location.search);
-    let returnUrl = urlParams.get('return') || '/examples/watch-stream.html';
-    
-    // Normalize return URL - convert file:// to HTTP if needed
+    let returnUrl = '/examples/live-streams.html';
+
+    // Normalize return URL
     function normalizeReturnUrl(url) {
-      if (!url) return '/examples/watch-stream.html';
-      
-      // If it's a file:// URL, extract the path and convert to HTTP
+      if (!url) return '/examples/live-streams.html';
       if (url.startsWith('file://')) {
-        // Extract path from file:// URL
         try {
           const fileUrl = new URL(url);
           const path = fileUrl.pathname;
-          // Convert Windows path (C:/...) to HTTP path
-          // Remove drive letter and convert to HTTP path
           const httpPath = path.replace(/^\/[A-Z]:/, '').replace(/\\/g, '/');
-          // If path contains 'examples', use it, otherwise default
           if (httpPath.includes('examples')) {
             return httpPath;
           }
-          return '/examples/watch-stream.html';
+          return '/examples/live-streams.html';
         } catch (e) {
           console.warn('Error parsing file:// URL:', e);
-          return '/examples/watch-stream.html';
+          return '/examples/live-streams.html';
         }
       }
-      
-      // If it's already HTTP, return as is
-      if (url.startsWith('http://') || url.startsWith('https://')) {
-        return url;
-      }
-      
-      // Relative path
+      if (url.startsWith('http://') || url.startsWith('https://')) return url;
       return url;
     }
-    
     returnUrl = normalizeReturnUrl(returnUrl);
 
     function showMessage(text, isError = false) {
@@ -253,6 +272,7 @@
       msgEl.className = 'message ' + (isError ? 'error' : 'success');
       setTimeout(() => {
         msgEl.className = 'message';
+        msgEl.style.display = 'none';
       }, 5000);
     }
 
@@ -260,7 +280,7 @@
       isLoading = loading;
       const registerBtn = document.getElementById('btn-register');
       const loginBtn = document.getElementById('btn-login');
-      
+
       if (loading) {
         registerBtn.disabled = true;
         loginBtn.disabled = true;
@@ -269,20 +289,18 @@
       } else {
         registerBtn.disabled = false;
         loginBtn.disabled = false;
-        registerBtn.innerHTML = '📝 Đăng ký';
-        loginBtn.innerHTML = '🔐 Đăng nhập';
+        registerBtn.innerHTML = 'Đăng ký';
+        loginBtn.innerHTML = 'Đăng nhập';
       }
     }
 
     async function registerUser() {
       if (isLoading) return;
-      
-      // Check if running from file://
       if (window.location.protocol === 'file:') {
-        showMessage('❌ Vui lòng mở trang qua HTTP server (http://localhost:7880/examples/auth.html) để sử dụng tính năng đăng ký!', true);
+        showMessage('❌ Vui lòng mở trang qua HTTP server để đăng ký!', true);
         return;
       }
-      
+
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       const displayName = document.getElementById('displayName').value.trim();
@@ -291,14 +309,12 @@
         showMessage('Vui lòng điền đầy đủ email và mật khẩu!', true);
         return;
       }
-
       if (password.length < 6) {
         showMessage('Mật khẩu phải có ít nhất 6 ký tự!', true);
         return;
       }
 
       setLoading(true);
-      
       try {
         const res = await fetch('/api/register', {
           method: 'POST',
@@ -306,48 +322,35 @@
           body: JSON.stringify({ email, password, displayName: displayName || email.split('@')[0] })
         });
 
-        // Parse response - handle both JSON and text errors
+        // Parse response
         let data;
         const contentType = res.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
-          try {
-            data = await res.json();
-          } catch (parseError) {
-            throw new Error('Lỗi khi xử lý phản hồi từ server');
-          }
+          data = await res.json();
         } else {
-          // Non-JSON response (shouldn't happen with our API, but handle it)
-          const text = await res.text();
-          throw new Error(text || 'Đăng ký thất bại');
+          throw new Error(await res.text() || 'Đăng ký thất bại');
         }
-        
-        if (!res.ok) {
-          throw new Error(data.error || 'Đăng ký thất bại');
-        }
+
+        if (!res.ok) throw new Error(data.error || 'Đăng ký thất bại');
 
         if (data.token && data.user) {
           showMessage('✅ Đăng ký thành công! Đang chuyển hướng...', false);
-          
-          // Redirect back to watch-stream with user info
+
           let redirectUrl;
-          if (returnUrl.startsWith('http://') || returnUrl.startsWith('https://')) {
+          if (returnUrl.startsWith('http')) {
             redirectUrl = new URL(returnUrl);
           } else {
-            // Relative path - construct full URL
             redirectUrl = new URL(returnUrl, window.location.origin);
           }
           redirectUrl.searchParams.set('token', data.token);
           redirectUrl.searchParams.set('name', data.user.displayName || data.user.email);
           redirectUrl.searchParams.set('email', data.user.email);
-          
-          setTimeout(() => {
-            window.location.href = redirectUrl.toString();
-          }, 1000);
+
+          setTimeout(() => window.location.href = redirectUrl.toString(), 1000);
         } else {
           throw new Error('Không nhận được token từ server');
         }
       } catch (error) {
-        console.error('Register error:', error);
         showMessage('❌ ' + error.message, true);
         setLoading(false);
       }
@@ -355,23 +358,20 @@
 
     async function loginUser() {
       if (isLoading) return;
-      
-      // Check if running from file://
       if (window.location.protocol === 'file:') {
-        showMessage('❌ Vui lòng mở trang qua HTTP server (http://localhost:7880/examples/auth.html) để sử dụng tính năng đăng nhập!', true);
+        showMessage('❌ Vui lòng mở trang qua HTTP server để đăng nhập!', true);
         return;
       }
-      
+
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
 
       if (!email || !password) {
-        showMessage('Vui lòng điền đầy đủ email và mật khẩu!', true);
+        showMessage('Vui lòng điền đầy đủ thông tin!', true);
         return;
       }
 
       setLoading(true);
-      
       try {
         const res = await fetch('/api/login', {
           method: 'POST',
@@ -379,124 +379,97 @@
           body: JSON.stringify({ email, password })
         });
 
-        // Parse response - handle both JSON and text errors
         let data;
         const contentType = res.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
-          try {
-            data = await res.json();
-          } catch (parseError) {
-            throw new Error('Lỗi khi xử lý phản hồi từ server');
-          }
+          data = await res.json();
         } else {
-          // Non-JSON response (shouldn't happen with our API, but handle it)
-          const text = await res.text();
-          throw new Error(text || 'Đăng nhập thất bại');
+          throw new Error(await res.text() || 'Đăng nhập thất bại');
         }
-        
+
         if (!res.ok) {
-          if (res.status === 401) {
-            throw new Error('Email hoặc mật khẩu không đúng!');
-          }
+          if (res.status === 401) throw new Error('Email hoặc mật khẩu không đúng!');
           throw new Error(data.error || 'Đăng nhập thất bại');
         }
 
         if (data.token && data.user) {
-          showMessage('✅ Đăng nhập thành công! Đang chuyển hướng...', false);
-          
-          // Redirect back to watch-stream with user info
+          showMessage('✅ Đăng nhập thành công!', false);
+
           let redirectUrl;
-          if (returnUrl.startsWith('http://') || returnUrl.startsWith('https://')) {
+          if (returnUrl.startsWith('http')) {
             redirectUrl = new URL(returnUrl);
           } else {
-            // Relative path - construct full URL
             redirectUrl = new URL(returnUrl, window.location.origin);
           }
           redirectUrl.searchParams.set('token', data.token);
           redirectUrl.searchParams.set('name', data.user.displayName || data.user.email);
           redirectUrl.searchParams.set('email', data.user.email);
-          
-          setTimeout(() => {
-            window.location.href = redirectUrl.toString();
-          }, 1000);
+
+          setTimeout(() => window.location.href = redirectUrl.toString(), 1000);
         } else {
           throw new Error('Không nhận được token từ server');
         }
       } catch (error) {
-        console.error('Login error:', error);
         showMessage('❌ ' + error.message, true);
         setLoading(false);
       }
     }
 
-    function goBack() {
-      if (returnUrl.startsWith('file://')) {
-        // For file://, try to go back or use default
-        if (window.history.length > 1) {
-          window.history.back();
-        } else {
-          window.location.href = '/examples/watch-stream.html';
-        }
-      } else {
-        window.location.href = returnUrl;
-      }
-    }
-
-    // Check if running from file:// and show warning
     document.addEventListener('DOMContentLoaded', () => {
-      const isFileProtocol = window.location.protocol === 'file:';
-      
-      if (isFileProtocol) {
-        showMessage('⚠️ Bạn đang mở file trực tiếp. Vui lòng mở qua HTTP server: http://localhost:7880/examples/watch-stream.html', true);
-      }
-      
       document.getElementById('password').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !isLoading) {
-          loginUser();
-        }
+        if (e.key === 'Enter' && !isLoading) loginUser();
       });
     });
   </script>
 </head>
+
 <body>
   <div class="auth-container">
     <div class="auth-header">
-      <h1>🔐 LiveKit</h1>
-      <p>Đăng nhập hoặc tạo tài khoản mới</p>
+      <svg width="60" height="60" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="logo-icon">
+        <defs>
+          <linearGradient id="logo-gradient" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#00C7FD" />
+            <stop offset="100%" stop-color="#9146FF" />
+          </linearGradient>
+        </defs>
+        <path
+          d="M33.5 17.4C35.5 18.55 35.5 21.45 33.5 22.6L13.5 34.15C11.5 35.3 9 33.85 9 31.55V8.45C9 6.15 11.5 4.7 13.5 5.85L33.5 17.4Z"
+          fill="url(#logo-gradient)" />
+      </svg>
+      <div class="logo-text">StreamG8</div>
+      <p>Tham gia vào vũ trụ livestream</p>
     </div>
+
     <div class="auth-body">
       <div id="message" class="message"></div>
-      
+
       <div class="form-group">
-        <label for="email">📧 Email</label>
-        <input id="email" type="email" placeholder="your@email.com" required />
+        <label for="email">Email</label>
+        <input id="email" type="email" placeholder="Ví dụ: hotboy@gmail.com" required />
       </div>
-      
+
       <div class="form-group">
-        <label for="password">🔒 Mật khẩu</label>
+        <label for="password">Mật khẩu</label>
         <input id="password" type="password" placeholder="••••••••" required />
       </div>
-      
+
       <div class="form-group">
-        <label for="displayName">👤 Tên hiển thị (tùy chọn)</label>
-        <input id="displayName" type="text" placeholder="Tên của bạn" />
+        <label for="displayName">Tên hiển thị (Nếu đăng ký)</label>
+        <input id="displayName" type="text" placeholder="Tên nickname của bạn" />
       </div>
 
       <div class="btn-group">
-        <button class="btn btn-primary" id="btn-register" onclick="registerUser()">
-          📝 Đăng ký
+        <button class="btn btn-primary" id="btn-login" onclick="loginUser()">
+          Đăng nhập
         </button>
-        <button class="btn btn-secondary" id="btn-login" onclick="loginUser()">
-          🔐 Đăng nhập
+        <button class="btn btn-secondary" id="btn-register" onclick="registerUser()">
+          Đăng ký tài khoản mới
         </button>
       </div>
 
-      <div class="divider">hoặc</div>
-      
-      <button class="btn btn-secondary" style="width: 100%;" onclick="goBack()">
-        ← Quay lại xem stream
-      </button>
     </div>
   </div>
 </body>
+
 </html>

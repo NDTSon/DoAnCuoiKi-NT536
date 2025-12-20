@@ -28,6 +28,7 @@ import (
 	"runtime"
 	"runtime/pprof"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -347,6 +348,12 @@ func startServer(_ context.Context, c *cli.Command) error {
 	server.RegisterHTTPHandler("/api/register", http.HandlerFunc(authHandler.Register))
 	server.RegisterHTTPHandler("/api/login", http.HandlerFunc(authHandler.Login))
 	server.RegisterHTTPHandler("/api/profile", authMiddleware.Authorize(http.HandlerFunc(handleProfile)))
+
+	// Stream Registry API
+	server.RegisterHTTPHandler("/api/streaming/list", http.HandlerFunc(handleListStreams))
+	server.RegisterHTTPHandler("/api/streaming/register", http.HandlerFunc(handleRegisterStream))
+	server.RegisterHTTPHandler("/api/streaming/unregister", http.HandlerFunc(handleUnregisterStream))
+
 	// Serve static files from examples directory
 	fs := http.FileServer(http.Dir("examples"))
 	server.RegisterHTTPHandler("/examples/", http.StripPrefix("/examples/", fs))
@@ -367,6 +374,103 @@ func startServer(_ context.Context, c *cli.Command) error {
 
 	return server.Start()
 }
+
+// --- Stream Registry ---
+
+type StreamInfo struct {
+	ID        string `json:"id"`
+	Title     string `json:"title"`
+	Streamer  string `json:"streamer"`
+	Avatar    string `json:"avatar"`
+	Viewers   int    `json:"viewers"`
+	StartTime int64  `json:"startTime"`
+}
+
+var (
+	streamMutex   sync.RWMutex
+	activeStreams = make(map[string]StreamInfo)
+)
+
+func handleListStreams(w http.ResponseWriter, r *http.Request) {
+	enableCORS(w)
+	if r.Method == "OPTIONS" {
+		return
+	}
+
+	streamMutex.RLock()
+	defer streamMutex.RUnlock()
+
+	streams := make([]StreamInfo, 0, len(activeStreams))
+	for _, s := range activeStreams {
+		streams = append(streams, s)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(streams)
+}
+
+func handleRegisterStream(w http.ResponseWriter, r *http.Request) {
+	enableCORS(w)
+	if r.Method == "OPTIONS" {
+		return
+	}
+	if r.Method != "POST" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var info StreamInfo
+	if err := json.NewDecoder(r.Body).Decode(&info); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if info.ID == "" {
+		http.Error(w, "Missing stream ID", http.StatusBadRequest)
+		return
+	}
+
+	streamMutex.Lock()
+	activeStreams[info.ID] = info
+	streamMutex.Unlock()
+
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte(`{"status":"registered"}`))
+}
+
+func handleUnregisterStream(w http.ResponseWriter, r *http.Request) {
+	enableCORS(w)
+	if r.Method == "OPTIONS" {
+		return
+	}
+	if r.Method != "POST" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		ID string `json:"id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	streamMutex.Lock()
+	delete(activeStreams, req.ID)
+	streamMutex.Unlock()
+
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte(`{"status":"unregistered"}`))
+}
+
+func enableCORS(w http.ResponseWriter) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+}
+
+// --- End Stream Registry ---
 
 // loadEnvFromFile loads KEY=VALUE lines from a .env-like file (no export, no quotes)
 func loadEnvFromFile(path string) error {

@@ -2,6 +2,7 @@ package storage
 
 import (
 	"database/sql"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -62,7 +63,13 @@ func openOrInitSQLite(conn string) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+<<<<<<< Updated upstream
 	
+=======
+	// LOG DB PATH
+	fmt.Printf(">>> CONNECTING TO SQLITE DB AT: %s <<<\n", absPath)
+
+>>>>>>> Stashed changes
 	// Reconstruct connection string with absolute path
 	if strings.HasPrefix(conn, "file:") {
 		// Keep query parameters if any

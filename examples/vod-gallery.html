@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VOD Gallery - LiveKit Streaming</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #9147ff;
+            /* Twitch Purple */
+            --bg-color: #0e0e10;
+            --surface-color: #18181b;
+            --text-color: #efeff1;
+            --secondary-text: #adadb8;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            background: var(--surface-color);
+            color: var(--text-color);
+        }
+
+        button {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            background: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .video-card {
+            background: var(--surface-color);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+
+        .video-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .thumbnail {
+            width: 100%;
+            height: 180px;
+            background-color: #000;
+            object-fit: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+
+        .thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-info {
+            padding: 15px;
+        }
+
+        .video-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .video-meta {
+            font-size: 0.9em;
+            color: var(--secondary-text);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            margin-top: 5px;
+        }
+
+        .status-recording {
+            background: #e91e63;
+            color: white;
+        }
+
+        .status-ready {
+            background: #4caf50;
+            color: white;
+        }
+
+        .status-processing {
+            background: #ff9800;
+            color: white;
+        }
+
+        /* Modal Player */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        video {
+            max-width: 90%;
+            max-height: 80vh;
+            background: #000;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- Navbar -->
+        <nav class="navbar"
+            style="height: 50px; background-color: var(--surface-color); border-bottom: 1px solid black; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; margin-bottom: 30px;">
+            <a href="live-streams.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+                <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="logo-g" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#00C7FD" />
+                            <stop offset="100%" stop-color="#9146FF" />
+                        </linearGradient>
+                    </defs>
+                    <path
+                        d="M33.5 17.4C35.5 18.55 35.5 21.45 33.5 22.6L13.5 34.15C11.5 35.3 9 33.85 9 31.55V8.45C9 6.15 11.5 4.7 13.5 5.85L33.5 17.4Z"
+                        fill="url(#logo-g)" />
+                </svg>
+                <span style="font-weight: 800; color: var(--text-color); font-size: 1.2em;">StreamG8 <span
+                        style="font-weight: 400; opacity: 0.7;">VOD Library</span></span>
+            </a>
+
+            <div class="controls" style="display: flex; gap: 10px;">
+                <input type="text" id="streamer-id" placeholder="Tìm kiếm Streamer..."
+                    style="background: var(--bg-color); border: 1px solid #333; color: white; padding: 5px 10px; border-radius: 4px;">
+                <button onclick="loadRecordings()"
+                    style="background: var(--primary-color); border: none; padding: 5px 15px; border-radius: 4px; color: white; cursor: pointer;">Tìm
+                    kiếm</button>
+            </div>
+        </nav>
+
+        <div id="gallery" class="gallery-grid">
+            <!-- Videos will be injected here -->
+        </div>
+    </div>
+
+    <div id="player-modal" class="modal">
+        <span class="modal-close" onclick="closePlayer()">&times;</span>
+        <div style="position: relative; width: 90%; max-height: 80vh;">
+            <video id="main-player" controls style="width: 100%; height: 100%; display: block;"></video>
+            <div id="player-loading"
+                style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none;">
+                <div class="spinner" style="border-top-color: var(--primary-color);"></div>
+            </div>
+        </div>
+        <h2 id="player-title" style="margin-top: 10px;"></h2>
+    </div>
+
+    <style>
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #740CDC;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+
+    <script>
+        const API_BASE = '/api/streaming/vod';
+        // Base URL for serving static VOD files
+        const VOD_BASE = '/recordings';
+
+        async function loadRecordings() {
+            const filterText = document.getElementById('streamer-id').value.trim().toLowerCase();
+            const startTime = Date.now();
+
+            try {
+                // Always fetch all to allow client-side fuzzy search on Name/Title
+                const url = `${API_BASE}/list`;
+                console.log(`Fetching VOD list from: ${url}`);
+
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Failed to fetch recordings');
+
+                let recordings = await res.json();
+
+                // Client-side Filter
+                if (filterText) {
+                    recordings = recordings.filter(rec => {
+                        const sName = rec.streamer_name ? rec.streamer_name.toLowerCase() : '';
+                        const title = rec.title ? rec.title.toLowerCase() : '';
+                        return sName.includes(filterText) || title.includes(filterText);
+                    });
+                }
+
+                console.log(`API Response (${Date.now() - startTime}ms):`, recordings);
+                renderGallery(recordings);
+            } catch (err) {
+                console.error(err);
+                alert('Error loading recordings: ' + err.message);
+            }
+        }
+
+        function renderGallery(recordings) {
+            const gallery = document.getElementById('gallery');
+            gallery.innerHTML = '';
+
+            if (!recordings || recordings.length === 0) {
+                gallery.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #666;">No recordings found.</p>';
+                return;
+            }
+
+            recordings.forEach(rec => {
+                const card = document.createElement('div');
+                card.className = 'video-card';
+                card.onclick = () => playVideo(rec);
+
+                const date = new Date(rec.recorded_at).toLocaleDateString() + ' ' + new Date(rec.recorded_at).toLocaleTimeString();
+                const duration = rec.duration ? Math.round(rec.duration / 1e9) + 's' : 'N/A';
+
+                // Thumbnail placeholder or actual image
+                let thumbContent = '<span style="font-size: 40px">▶️</span>';
+                if (rec.thumbnail_url) {
+                    // If we implemented thumbnails, point to them
+                    // thumbContent = `<img src="/vod/${rec.thumbnail_url}" alt="${rec.title}">`;
+                }
+
+                card.innerHTML = `
+                <div class="thumbnail">
+                    ${thumbContent}
+                </div>
+                <div class="video-info">
+                    <div class="video-title">${rec.title || 'Untitled Stream'}</div>
+                    <div class="video-meta">
+                        <span>${date}</span>
+                        <span>${duration}</span>
+                    </div>
+                    <div class="status-badge status-${rec.status.toLowerCase()}">${rec.status}</div>
+                </div>
+            `;
+                gallery.appendChild(card);
+            });
+        }
+
+        function playVideo(rec) {
+            const modal = document.getElementById('player-modal');
+            const video = document.getElementById('main-player');
+            const loading = document.getElementById('player-loading');
+
+            console.log(`Playing video: ${rec.title}, URL: ${VOD_BASE}/${rec.video_url}`);
+
+            video.src = `${VOD_BASE}/${rec.video_url}`;
+            video.preload = "metadata"; // Optimize loading
+
+            document.getElementById('player-title').textContent = rec.title;
+            modal.classList.add('active');
+
+            // Show loading spinner
+            loading.style.display = 'block';
+
+            const onPlayParams = () => {
+                loading.style.display = 'none';
+            };
+
+            const onWaiting = () => {
+                loading.style.display = 'block';
+            };
+
+            const onCanPlay = () => {
+                loading.style.display = 'none';
+                video.play().catch(e => console.warn("Auto-play prevented", e));
+            };
+
+            // Remove old listeners to avoid duplicates if any (imperfect but simple)
+            video.onwaiting = onWaiting;
+            video.onplaying = onPlayParams;
+            video.oncanplay = onCanPlay;
+        }
+
+        function closePlayer() {
+            const modal = document.getElementById('player-modal');
+            const video = document.getElementById('main-player');
+            video.pause();
+            video.src = '';
+            video.onwaiting = null;
+            video.onplaying = null;
+            video.oncanplay = null;
+            modal.classList.remove('active');
+        }
+
+        // Auto-load all recordings on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadRecordings();
+        });
+    </script>
+
+</body>
+
+</html>

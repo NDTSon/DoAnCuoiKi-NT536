@@ -1,0 +1,14 @@
+base_routing_key: ingress
+redis:
+  address: host.docker.internal:6379
+  username: ""
+  password: ""
+  db: 0
+  use_tls: false
+api_key: devkey
+api_secret: secret
+ws_url: ws://192.168.1.165:7880
+rtmp_port: 1935
+http_relay_port: 9090
+logging:
+  level: info

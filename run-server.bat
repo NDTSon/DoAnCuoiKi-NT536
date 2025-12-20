@@ -12,7 +12,7 @@ if %errorlevel% neq 0 (
     echo Please:
     echo 1. Close this window
     echo 2. Open a NEW PowerShell window
-    echo 3. Run: cd c:\da-NT536\livekit
+    echo 3. Run from the project root directory
     echo 4. Run: .\run-server.bat
     echo.
     pause
@@ -32,6 +32,6 @@ echo ========================================
 echo.
 
 REM Run server directly without building
-go run ./cmd/server --dev
+go run ./cmd/server --dev --redis-host localhost:6379 --bind 0.0.0.0
 
 pause

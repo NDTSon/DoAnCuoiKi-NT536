@@ -1,10 +1,24 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Streams - Xem Stream Trực Tiếp</title>
+    <title>StreamG8 - Live</title>
     <style>
+        :root {
+            --twitch-purple: #9147ff;
+            --twitch-purple-hover: #772ce8;
+            --bg-body: #0e0e10;
+            --bg-base: #18181b;
+            --bg-alt: #1f1f23;
+            --bg-hover: #26262c;
+            --text-base: #efeff1;
+            --text-alt: #adadb8;
+            --red-live: #eb0400;
+            --border-color: #303032;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,540 +26,839 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', 'Roobert', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-base);
             min-height: 100vh;
-        }
-
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 20px 30px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .header-content {
-            max-width: 1400px;
-            margin: 0 auto;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            overflow: hidden;
+            /* Prevent body scroll, handle in main-container */
         }
 
-        .logo {
-            font-size: 1.8em;
-            font-weight: 700;
-            color: #667eea;
+        /* --- Scrollbar --- */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-body);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #3a3a3d;
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4a4a4d;
+        }
+
+        /* --- Navbar --- */
+        .navbar {
+            height: 50px;
+            background-color: var(--bg-base);
+            border-bottom: 1px solid black;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            z-index: 1000;
+            flex-shrink: 0;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        .logo-container:hover {
+            opacity: 0.9;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            border-radius: 6px;
+            /* Slightly round the icon card if it has explicit bg */
+            transition: transform 0.2s;
+        }
+
+        .logo-container:hover .logo-icon {
+            transform: scale(1.1);
+        }
+
+        .logo-text {
+            font-size: 1.5em;
+            color: var(--twitch-purple);
+            font-weight: 800;
+            display: block;
+        }
+
+        @media screen and (max-width: 600px) {
+            .logo-text {
+                display: none;
+            }
         }
 
         .nav-links {
             display: flex;
-            gap: 15px;
+            gap: 20px;
         }
 
-        .nav-btn {
-            padding: 10px 20px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 8px;
+        .nav-link {
+            color: var(--text-base);
             text-decoration: none;
             font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+            font-size: 0.9em;
+            transition: color 0.2s;
         }
 
-        .nav-btn:hover {
-            background: #5568d3;
-            transform: translateY(-2px);
+        .nav-link:hover,
+        .nav-link.active {
+            color: var(--twitch-purple);
         }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 30px;
+        .nav-center {
+            flex: 1;
+            max-width: 400px;
+            display: flex;
+            justify-content: center;
         }
 
-        .section-header {
-            color: white;
-            margin-bottom: 25px;
-        }
-
-        .section-header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-
-        .section-header p {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-
-        .live-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: #ef4444;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: 700;
-            margin-bottom: 20px;
-        }
-
-        .live-dot {
-            width: 10px;
-            height: 10px;
-            background: white;
-            border-radius: 50%;
-            animation: blink 1s infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        .streams-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-            gap: 25px;
-            margin-top: 20px;
-        }
-
-        .stream-card {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-
-        .stream-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
-        }
-
-        .stream-thumbnail {
-            position: relative;
+        /* Search bar styles (hidden but preserved) */
+        .search-bar {
             width: 100%;
-            height: 220px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 4em;
+            background-color: transparent;
         }
 
-        .stream-live-badge {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            background: #ef4444;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-weight: 700;
-            font-size: 0.85em;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .stream-viewers {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 6px;
+        .search-input {
+            flex: 1;
+            background-color: #000000;
+            border: 1px solid #303032;
+            border-right: none;
+            border-radius: 6px 0 0 6px;
+            padding: 8px 10px;
+            color: var(--text-base);
             font-size: 0.9em;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--twitch-purple);
+            border-width: 2px;
+            margin: -1px;
+        }
+
+        .search-btn {
+            background-color: #2f2f31;
+            border: 1px solid #303032;
+            border-left: none;
+            border-radius: 0 6px 6px 0;
+            padding: 0 10px;
+            cursor: pointer;
+            color: var(--text-base);
+        }
+
+        .search-btn:hover {
+            background-color: #3f3f41;
+        }
+
+        .nav-right {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 10px;
         }
 
-        .play-overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 70px;
-            height: 70px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5em;
-            opacity: 0;
-            transition: all 0.3s;
-        }
-
-        .stream-card:hover .play-overlay {
-            opacity: 1;
-        }
-
-        .stream-info {
-            padding: 20px;
-        }
-
-        .stream-title {
-            font-size: 1.2em;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 12px;
-            line-height: 1.4;
-        }
-
-        .streamer-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 15px;
-        }
-
-        .streamer-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #ec4899, #8b5cf6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2em;
-        }
-
-        .streamer-name {
+        .btn-auth {
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: none;
             font-weight: 600;
-            color: #374151;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.85em;
         }
 
-        .stream-stats {
+        .btn-login {
+            background-color: #35353b;
+            color: var(--text-base);
+        }
+
+        .btn-login:hover {
+            background-color: #45454b;
+        }
+
+        .btn-signup {
+            background-color: var(--twitch-purple);
+            color: white;
+        }
+
+        .btn-signup:hover {
+            background-color: var(--twitch-purple-hover);
+        }
+
+        .user-menu {
+            display: none;
+            /* Show if logged in */
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .user-menu.active {
             display: flex;
-            gap: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #e5e7eb;
-            font-size: 0.9em;
-            color: #6b7280;
         }
 
-        .stat-item {
+        .user-avatar-small {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--twitch-purple);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            color: white;
+        }
+
+        /* --- Main Layout --- */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 50px);
+            /* Fill remaining height */
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            width: 240px;
+            background-color: var(--bg-alt);
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #000000;
+            /* Darker separation */
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            padding: 15px 10px;
+        }
+
+        .sidebar-title {
+            font-size: 0.8em;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: var(--text-base);
+            margin-bottom: 10px;
+            padding-left: 5px;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 5px;
+            cursor: pointer;
+            border-radius: 4px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .sidebar-item:hover {
+            background-color: var(--bg-hover);
+        }
+
+        .sidebar-item-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        .channel-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #333;
+            flex-shrink: 0;
+        }
+
+        .channel-info {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .channel-name {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: var(--text-base);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .channel-game {
+            font-size: 0.8em;
+            color: var(--text-alt);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .live-status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--red-live);
+            border-radius: 50%;
+        }
+
+        .viewer-count-mini {
+            font-size: 0.8em;
+            color: var(--text-base);
             display: flex;
             align-items: center;
             gap: 5px;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 80px 20px;
-            color: white;
+        /* --- Content Area --- */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            background-color: var(--bg-body);
+            padding: 30px;
         }
 
-        .empty-state-icon {
-            font-size: 5em;
+        .section-heading {
+            font-size: 1.5em;
+            font-weight: 700;
             margin-bottom: 20px;
         }
 
-        .empty-state h2 {
-            font-size: 2em;
-            margin-bottom: 15px;
+        .section-heading span {
+            color: var(--twitch-purple);
         }
 
-        .empty-state p {
-            font-size: 1.1em;
-            opacity: 0.9;
-            margin-bottom: 25px;
+        .streams-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
         }
 
-        .refresh-btn {
-            padding: 15px 30px;
-            background: white;
-            color: #667eea;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1em;
-            font-weight: 700;
+        /* --- Stream Card --- */
+        .stream-card {
+            display: flex;
+            flex-direction: column;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: transform 0.2s;
         }
 
-        .refresh-btn:hover {
-            background: #f3f4f6;
-            transform: translateY(-2px);
+        .stream-card:hover {
+            transform: translateY(-5px);
         }
 
-        .loading {
-            text-align: center;
-            padding: 60px;
+        .stream-card:hover .stream-title {
+            color: var(--twitch-purple);
+        }
+
+        .stream-card:hover .thumbnail-deco-line {
+            transform: translateX(5px) translateY(-5px);
+        }
+
+        .thumbnail-container {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%;
+            /* 16:9 Aspect Ratio */
+            background-color: #000;
+            /* Fallback */
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+
+        .thumbnail-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* Placeholder gradient if no image */
+            background: linear-gradient(120deg, #2c2c31 0%, #3e3e44 100%);
+        }
+
+        .thumbnail-deco-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--twitch-purple);
+            z-index: -1;
+            transition: transform 0.2s;
+        }
+
+        .card-live-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: var(--red-live);
             color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .card-viewers {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 2px;
+            font-size: 0.75em;
+        }
+
+        .card-info {
+            display: flex;
+            gap: 10px;
+        }
+
+        .card-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #444;
+            /* Placeholder */
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 1.2em;
         }
 
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+        .card-text {
+            flex: 1;
+            overflow: hidden;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .stream-title {
+            font-weight: 700;
+            font-size: 1em;
+            color: var(--text-base);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 3px;
         }
 
-        @media (max-width: 768px) {
-            .streams-grid {
-                grid-template-columns: 1fr;
+        .streamer-name {
+            font-size: 0.9em;
+            color: var(--text-alt);
+            margin-bottom: 3px;
+        }
+
+        .game-tag {
+            display: inline-block;
+            font-size: 0.8em;
+            color: var(--text-alt);
+            background-color: #323234;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .game-tag:hover {
+            background-color: #424244;
+        }
+
+        /* --- Empty State --- */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            color: var(--text-alt);
+            text-align: center;
+        }
+
+        .empty-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .refresh-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: var(--twitch-purple);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        @media screen and (max-width: 768px) {
+            .sidebar {
+                display: none;
+                /* Collapse sidebar on mobile logic */
             }
 
-            .header-content {
-                flex-direction: column;
-                gap: 15px;
+            .nav-links {
+                display: none;
             }
         }
     </style>
 </head>
+
 <body>
-    <!-- Header -->
-    <div class="header">
-        <div class="header-content">
-            <div class="logo">🎥 Live Streams</div>
-            <div class="nav-links">
-                <a href="streamer-advanced.html" class="nav-btn">🎤 Bắt đầu Stream</a>
-                <a href="platform-overview.html" class="nav-btn">🏠 Trang chủ</a>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="live-streams.html" class="logo-container">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"
+                    class="logo-icon">
+                    <defs>
+                        <linearGradient id="logo-gradient" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#00C7FD" />
+                            <stop offset="100%" stop-color="#9146FF" />
+                        </linearGradient>
+                    </defs>
+                    <path
+                        d="M33.5 17.4C35.5 18.55 35.5 21.45 33.5 22.6L13.5 34.15C11.5 35.3 9 33.85 9 31.55V8.45C9 6.15 11.5 4.7 13.5 5.85L33.5 17.4Z"
+                        fill="url(#logo-gradient)" />
+                </svg>
+                <span class="logo-text">StreamG8</span>
+            </a>
+            <div class="nav-links" style="display: none;">
+                <!-- Links removed -->
+            </div>
+        </div>
+
+        <div class="nav-center"></div>
+
+        <div class="nav-right" id="auth-buttons">
+            <!-- Will be toggled by JS -->
+            <div id="logged-out-view" style="display: flex; gap: 10px;">
+                <button class="btn-auth btn-login" onclick="openLogin()">Đăng nhập</button>
+                <button class="btn-auth btn-signup" onclick="openLogin()">Đăng ký</button>
+            </div>
+
+            <div id="logged-in-view" class="user-menu">
+                <a href="vod-gallery.html" class="btn-auth btn-secondary"
+                    style="background: #35353b; color: white; margin-right: 10px; display: flex; align-items: center; gap: 5px;">
+                    <span style="font-size: 1.2em;">📼</span>
+                    <span>Videocast</span>
+                </a>
+                <a href="streamer-advanced.html" class="btn-auth btn-secondary"
+                    style="background: #35353b; color: white; margin-right: 10px; display: flex; align-items: center; gap: 5px;">
+                    <span style="font-size: 1.2em;">📹</span>
+                    <span>Tạo Stream</span>
+                </a>
+                <span id="nav-user-name" style="font-size: 0.9em; font-weight: 600;">Username</span>
+                <div class="user-avatar-small" id="nav-user-avatar">U</div>
+                <button onclick="logout()" class="btn-auth"
+                    style="background-color: #2f2f31; color: white; margin-left: 5px; border: 1px solid #3fa2ff1c;">Đăng
+                    xuất</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Kênh đề xuất</div>
+                <div id="recommended-channels">
+                    <!-- JS will populate active streams here -->
+                    <div style="padding:10px; color:var(--text-alt); font-size:0.8em;">Đang tải...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <h1 class="section-heading">Kênh đang <span>Live</span></h1>
+
+            <div id="loading-state" class="empty-state" style="height: 200px;">
+                <div
+                    style="width: 30px; height: 30px; border: 3px solid rgba(255,255,255,0.3); border-top-color: var(--twitch-purple); border-radius: 50%; animation: spin 1s linear infinite;">
+                </div>
+                <p style="margin-top: 15px;">Đang tải danh sách...</p>
+            </div>
+
+            <div id="streams-grid" class="streams-grid" style="display: none;">
+                <!-- Streams injected by JS -->
+            </div>
+
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <div class="empty-icon">📡</div>
+                <h2>Chưa có ai đang live</h2>
+                <p>Có vẻ như mọi người đang ngủ hoặc đi chơi hết rồi.</p>
+                <button class="refresh-btn" onclick="loadStreams()">🔄 Làm mới</button>
+                <div style="margin-top: 20px;">
+                    <a href="streamer-advanced.html" class="nav-link" style="color: var(--twitch-purple);">Bắt đầu
+                        stream ngay &rarr;</a>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Main Container -->
-    <div class="container">
-        <div class="section-header">
-            <h1>🔴 Live Streams</h1>
-            <p>Tham gia xem các stream đang phát sóng trực tiếp</p>
-        </div>
-
-        <div class="live-indicator">
-            <div class="live-dot"></div>
-            <span><span id="stream-count">0</span> stream đang live</span>
-        </div>
-
-        <!-- Loading State -->
-        <div class="loading" id="loading-state">
-            <div class="spinner"></div>
-            <p>Đang tải danh sách stream...</p>
-        </div>
-
-        <!-- Streams Grid -->
-        <div class="streams-grid" id="streams-grid" style="display: none;">
-            <!-- Streams will be populated here -->
-        </div>
-
-        <!-- Empty State -->
-        <div class="empty-state" id="empty-state" style="display: none;">
-            <div class="empty-state-icon">📺</div>
-            <h2>Chưa có stream nào đang live</h2>
-            <p>Hãy là người đầu tiên bắt đầu phát sóng!</p>
-            <button class="refresh-btn" onclick="loadStreams()">🔄 Refresh</button>
-            <br><br>
-            <a href="streamer-advanced.html" class="nav-btn" style="display: inline-block; margin-top: 20px;">
-                🎤 Bắt đầu Stream của bạn
-            </a>
-        </div>
-    </div>
-
+    <!-- Scripts -->
     <script>
-        const API_URL = 'http://localhost:7880/api/streaming';
-        
-        // Mock data - trong thực tế sẽ lấy từ API
-        let activeStreams = [];
+        // --- AUTH & CONFIG ---
+        let API_URL = '/api/streaming';
+        if (window.location.protocol === 'file:') {
+            API_URL = 'http://localhost:7880/api/streaming';
+        }
 
-        // Initialize
+        // --- INIT ---
         document.addEventListener('DOMContentLoaded', () => {
+            checkUserAuth();
             loadStreams();
-            // Auto refresh every 10 seconds
-            setInterval(loadStreams, 10000);
+            setInterval(loadStreams, 5000); // 5s Refresh
         });
+
+        // --- AUTH LOGIC ---
+        function checkUserAuth() {
+            // Priority 1: Check URL Parameters (Login Redirect)
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlName = urlParams.get('name');
+            const urlEmail = urlParams.get('email');
+
+            if (urlName) {
+                // We just came from login! Save immediately.
+                localStorage.setItem('user_name', urlName);
+                if (urlEmail) localStorage.setItem('user_email', urlEmail);
+
+                // IMPORTANT: Clean the URL so we don't re-save on refresh
+                const newUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, newUrl);
+            }
+
+            // Check LocalStorage
+            const userName = localStorage.getItem('user_name');
+            const userEmail = localStorage.getItem('user_email');
+
+            const loggedInView = document.getElementById('logged-in-view');
+            const loggedOutView = document.getElementById('logged-out-view');
+
+            if (userName) {
+                // Show Logged In
+                loggedOutView.style.display = 'none';
+                loggedInView.classList.add('active');
+
+                document.getElementById('nav-user-name').textContent = userName;
+
+                const avatarEl = document.getElementById('nav-user-avatar');
+                avatarEl.textContent = userName.charAt(0).toUpperCase();
+
+                // Update Links
+                updateLinksWithAuth(userName, userEmail);
+            } else {
+                // Show Logged Out
+                loggedOutView.style.display = 'flex';
+                loggedInView.classList.remove('active');
+            }
+        }
+
+        function updateLinksWithAuth(name, email) {
+            const params = new URLSearchParams();
+            params.set('name', name);
+            if (email) params.set('email', email);
+            const query = params.toString();
+
+            // Find all links to streamer-advanced.html
+            document.querySelectorAll('a[href^="streamer-advanced.html"]').forEach(link => {
+                const baseUrl = link.getAttribute('href').split('?')[0];
+                link.href = `${baseUrl}?${query}`;
+            });
+        }
+
+        function openLogin() {
+            // Check protocol for redirection
+            if (window.location.protocol === 'file:') {
+                // Try to find auth.html relatively
+                window.location.href = 'auth.html?return=' + encodeURIComponent(window.location.href);
+            } else {
+                window.location.href = '/examples/auth.html?return=' + encodeURIComponent(window.location.href);
+            }
+        }
+
+        function logout() {
+            if (confirm('Bạn có chắc muốn đăng xuất?')) {
+                localStorage.removeItem('user_name');
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('user_email');
+                location.reload();
+            }
+        }
+
+        // --- STREAMS LOGIC ---
+        let activeStreams = [];
 
         async function loadStreams() {
             const loading = document.getElementById('loading-state');
             const grid = document.getElementById('streams-grid');
             const empty = document.getElementById('empty-state');
 
-            loading.style.display = 'block';
-            grid.style.display = 'none';
-            empty.style.display = 'none';
+            // Only show loader on first load if grid is empty
+            if (grid.children.length === 0) {
+                loading.style.display = 'flex';
+                grid.style.display = 'none';
+                empty.style.display = 'none';
+            }
 
-            // Load from localStorage (streams registered by streamers)
-            activeStreams = loadActiveStreamsFromStorage();
-            
-            // Clean up old streams (older than 5 minutes)
-            activeStreams = activeStreams.filter(stream => {
-                const age = Date.now() - stream.startTime;
-                return age < 5 * 60 * 1000; // 5 minutes
-            });
-            
-            // Save cleaned list
-            saveActiveStreamsToStorage(activeStreams);
-
-            setTimeout(() => {
-                loading.style.display = 'none';
-
-                if (activeStreams.length === 0) {
-                    empty.style.display = 'block';
+            try {
+                // 1. Try Server API
+                const response = await fetch(`${API_URL}/list`);
+                if (response.ok) {
+                    activeStreams = await response.json();
                 } else {
-                    grid.style.display = 'grid';
-                    renderStreams();
+                    throw new Error('API unavailable');
                 }
-
-                document.getElementById('stream-count').textContent = activeStreams.length;
-            }, 500);
-        }
-
-        function loadActiveStreamsFromStorage() {
-            try {
+            } catch (e) {
+                // 2. Fallback Storage
+                // console.warn('Fetch failed, using storage', e);
                 const stored = localStorage.getItem('livekit_active_streams');
-                return stored ? JSON.parse(stored) : [];
-            } catch (error) {
-                console.error('Error loading streams from storage:', error);
-                return [];
+                if (stored) activeStreams = JSON.parse(stored);
             }
-        }
 
-        function saveActiveStreamsToStorage(streams) {
-            try {
-                localStorage.setItem('livekit_active_streams', JSON.stringify(streams));
-            } catch (error) {
-                console.error('Error saving streams to storage:', error);
-            }
-        }
-
-        function generateMockStreams() {
-            // Check if there's a streamer actually streaming
-            const hasActiveStream = Math.random() > 0.3; // 70% chance of having streams
-            
-            if (!hasActiveStream) return [];
-
-            const streamTemplates = [
-                {
-                    id: 'stream-1',
-                    title: 'Coding Session - Building React App',
-                    streamer: 'DevMaster',
-                    avatar: '💻',
-                    viewers: Math.floor(Math.random() * 500) + 50,
-                    duration: Math.floor(Math.random() * 120) + 10,
-                    messages: Math.floor(Math.random() * 1000) + 100,
-                    reactions: Math.floor(Math.random() * 500) + 50
-                },
-                {
-                    id: 'stream-2',
-                    title: 'Gaming Live - League of Legends',
-                    streamer: 'ProGamer123',
-                    avatar: '🎮',
-                    viewers: Math.floor(Math.random() * 800) + 100,
-                    duration: Math.floor(Math.random() * 180) + 20,
-                    messages: Math.floor(Math.random() * 2000) + 200,
-                    reactions: Math.floor(Math.random() * 800) + 100
-                },
-                {
-                    id: 'stream-3',
-                    title: 'Music Production Stream',
-                    streamer: 'BeatMaker',
-                    avatar: '🎵',
-                    viewers: Math.floor(Math.random() * 300) + 30,
-                    duration: Math.floor(Math.random() * 90) + 15,
-                    messages: Math.floor(Math.random() * 500) + 50,
-                    reactions: Math.floor(Math.random() * 300) + 40
-                }
-            ];
-
-            // Return 1-3 random streams
-            const numStreams = Math.floor(Math.random() * 3) + 1;
-            return streamTemplates.slice(0, numStreams).map(stream => ({
-                ...stream,
-                viewers: Math.floor(Math.random() * 500) + 50 // Randomize viewers
-            }));
-        }
-
-        function renderStreams() {
-            const grid = document.getElementById('streams-grid');
-            grid.innerHTML = activeStreams.map(stream => createStreamCard(stream)).join('');
-
-            // Add click handlers
-            document.querySelectorAll('.stream-card').forEach(card => {
-                card.addEventListener('click', () => {
-                    const streamId = card.dataset.id;
-                    joinStream(streamId);
-                });
+            // Cleanup old streams (5m timeout)
+            const NOW = Date.now();
+            activeStreams = activeStreams.filter(s => {
+                if (!s.startTime) return true;
+                return (NOW - s.startTime) < 5 * 60 * 1000;
             });
+
+            // Re-save (for sync)
+            localStorage.setItem('livekit_active_streams', JSON.stringify(activeStreams));
+
+            // Render
+            loading.style.display = 'none';
+
+            if (activeStreams.length === 0) {
+                if (grid.style.display === 'none') empty.style.display = 'flex';
+                // If grid was showing, keep it empty but update content (rare case)
+                grid.innerHTML = '';
+            } else {
+                empty.style.display = 'none';
+                grid.style.display = 'grid';
+                renderGrid(activeStreams);
+            }
+            renderSidebar(activeStreams);
         }
 
-        function createStreamCard(stream) {
-            const durationFormatted = formatDuration(stream.duration || 0);
-            
-            return `
-                <div class="stream-card" data-id="${stream.id}">
-                    <div class="stream-thumbnail">
-                        <div>${stream.avatar || '🎥'}</div>
-                        <div class="stream-live-badge">
-                            <div class="live-dot"></div>
-                            <span>LIVE</span>
+        function renderSidebar(streams) {
+            const container = document.getElementById('recommended-channels');
+            if (!container) return;
+
+            if (streams.length === 0) {
+                container.innerHTML = '<div style="padding:10px; color:var(--text-alt); font-size:0.8em; text-align: center;">Hiện không có ai đang live.</div>';
+                return;
+            }
+
+            container.innerHTML = streams.map(stream => {
+                let watchLink = `watch-stream.html?stream=${stream.id}`;
+                const userName = localStorage.getItem('user_name');
+                const userEmail = localStorage.getItem('user_email');
+                if (userName) {
+                    watchLink += `&name=${encodeURIComponent(userName)}`;
+                    if (userEmail) watchLink += `&email=${encodeURIComponent(userEmail)}`;
+                }
+
+                const streamName = stream.streamer || 'User';
+                const firstChar = streamName.charAt(0).toUpperCase();
+
+                return `
+                    <a href="${watchLink}" class="sidebar-item">
+                        <div class="sidebar-item-left">
+                            <div class="channel-avatar" style="background: var(--twitch-purple); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.8em;">
+                                ${firstChar}
+                            </div>
+                            <div class="channel-info">
+                                <div class="channel-name" title="${streamName}">${streamName}</div>
+                                <div class="channel-game">Just Chatting</div>
+                            </div>
                         </div>
-                        <div class="stream-viewers">
-                            <span>👁️</span>
-                            <span>${formatNumber(stream.viewers)}</span>
+                        <div class="viewer-count-mini">
+                            <div class="live-status-dot"></div> ${formatNumber(stream.viewers || 0)}
                         </div>
-                        <div class="play-overlay">▶️</div>
+                    </a>
+                `;
+            }).join('');
+        }
+
+        function renderGrid(streams) {
+            const grid = document.getElementById('streams-grid');
+            grid.innerHTML = streams.map(stream => {
+
+                // Random bg gradient for thumbnail if no image
+                const viewers = formatNumber(stream.viewers || 0);
+
+                // Attach User Params to Watch Link too!
+                let watchLink = `watch-stream.html?stream=${stream.id}`;
+                const userName = localStorage.getItem('user_name');
+                const userEmail = localStorage.getItem('user_email');
+                if (userName) {
+                    watchLink += `&name=${encodeURIComponent(userName)}`;
+                    if (userEmail) watchLink += `&email=${encodeURIComponent(userEmail)}`;
+                }
+
+                const streamName = stream.streamer || 'User';
+                const firstChar = streamName.charAt(0).toUpperCase();
+
+                // Handle avatar: use image if valid URL, otherwise use initial
+                let avatarContent;
+                if (stream.avatar && (stream.avatar.startsWith('http') || stream.avatar.startsWith('/'))) {
+                    avatarContent = `<img src="${stream.avatar}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;" alt="${streamName}">`;
+                } else {
+                    avatarContent = firstChar;
+                }
+
+                return `
+                <div class="stream-card" onclick="window.location.href='${watchLink}'">
+                    <div class="thumbnail-container">
+                        <div class="thumbnail-image" style="background: linear-gradient(135deg, #${Math.floor(Math.random() * 16777215).toString(16)} 0%, #18181b 100%);"></div>
+                        <div class="card-live-badge">Live</div>
+                        <div class="card-viewers">${viewers} viewers</div>
                     </div>
-                    <div class="stream-info">
-                        <div class="stream-title">${stream.title}</div>
-                        <div class="streamer-info">
-                            <div class="streamer-avatar">${stream.avatar || '🎤'}</div>
-                            <div>
-                                <div class="streamer-name">${stream.streamer}</div>
-                                <div style="font-size: 0.85em; color: #9ca3af;">
-                                    Live for ${durationFormatted}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="stream-stats">
-                            <div class="stat-item">
-                                <span>💬</span>
-                                <span>${formatNumber(stream.messages || 0)}</span>
-                            </div>
-                            <div class="stat-item">
-                                <span>❤️</span>
-                                <span>${formatNumber(stream.reactions || 0)}</span>
-                            </div>
+                    <div class="card-info">
+                        <div class="card-avatar" style="overflow: hidden; background: ${stream.avatar ? 'transparent' : '#444'};">${avatarContent}</div>
+                        <div class="card-text">
+                            <div class="stream-title" title="${stream.title}">${stream.title}</div>
+                            <div class="streamer-name">${streamName}</div>
+                            <div class="game-tag">Just Chatting</div>
                         </div>
                     </div>
                 </div>
-            `;
-        }
-
-        function joinStream(streamId) {
-            // Navigate to viewer page with stream ID
-            window.location.href = `watch-stream.html?stream=${streamId}`;
+                `;
+            }).join('');
         }
 
         function formatNumber(num) {
-            if (num >= 1000) {
-                return (num / 1000).toFixed(1) + 'K';
-            }
-            return num.toString();
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num;
         }
 
-        function formatDuration(minutes) {
-            if (minutes < 60) {
-                return `${minutes} phút`;
-            }
-            const hours = Math.floor(minutes / 60);
-            const mins = minutes % 60;
-            return `${hours}:${mins.toString().padStart(2, '0')} giờ`;
-        }
     </script>
 </body>
+
 </html>

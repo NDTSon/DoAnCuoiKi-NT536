@@ -1,12 +1,26 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xem Stream Trực Tiếp</title>
+    <title>Xem Stream - StreamG8</title>
     <!-- LiveKit Client SDK - Local File -->
     <script src="libs/livekit-client.umd.min.js"></script>
     <style>
+        :root {
+            --twitch-purple: #9147ff;
+            --twitch-purple-hover: #772ce8;
+            --bg-body: #0e0e10;
+            --bg-base: #18181b;
+            --bg-alt: #1f1f23;
+            --bg-hover: #26262c;
+            --text-base: #efeff1;
+            --text-alt: #adadb8;
+            --red-live: #eb0400;
+            --border-color: #303032;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -14,124 +28,389 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0f172a;
-            color: white;
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
-            padding: 15px 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .back-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1.1em;
-            transition: all 0.3s;
-        }
-
-        .back-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .stream-title {
-            font-size: 1.3em;
-            font-weight: 700;
-        }
-
-        .live-badge {
-            background: #ef4444;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 0.85em;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .live-dot {
-            width: 8px;
-            height: 8px;
-            background: white;
-            border-radius: 50%;
-            animation: blink 1s infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        .viewer-count {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 8px 16px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
-        }
-
-        .main-layout {
-            display: grid;
-            grid-template-columns: 1fr 380px;
-            height: calc(100vh - 70px);
-        }
-
-        .video-section {
-            background: #000;
+            font-family: 'Inter', 'Roobert', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-base);
+            height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            max-height: calc(100vh - 70px);
+        }
+
+        /* --- Navbar (Consistent with live-streams.html) --- */
+        .navbar {
+            height: 50px;
+            background-color: var(--bg-base);
+            border-bottom: 1px solid black;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            z-index: 1000;
+            flex-shrink: 0;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        .logo-container:hover {
+            opacity: 0.9;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            transition: transform 0.2s;
+        }
+
+        .logo-container:hover .logo-icon {
+            transform: scale(1.1);
+        }
+
+        .logo-text {
+            font-size: 1.5em;
+            color: var(--twitch-purple);
+            font-weight: 800;
+            display: block;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-link {
+            color: var(--text-base);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9em;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: var(--twitch-purple);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-auth {
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.85em;
+        }
+
+        .btn-login {
+            background-color: #35353b;
+            color: var(--text-base);
+        }
+
+        .btn-login:hover {
+            background-color: #45454b;
+        }
+
+        .user-menu {
+            display: none;
+            /* Show if logged in */
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .user-menu.active {
+            display: flex;
+        }
+
+        .user-avatar-small {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--twitch-purple);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            color: white;
+        }
+
+        /* --- Main Layout --- */
+        .main-layout {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 50px);
+            overflow: hidden;
+        }
+
+        /* --- Video Section --- */
+        .video-section {
+            flex: 1;
+            background: var(--bg-body);
+            display: flex;
+            flex-direction: column;
+            position: relative;
         }
 
         .video-container {
             flex: 1;
+            background: black;
             position: relative;
-            background: #000;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            max-height: calc(100vh - 220px);
         }
 
         #video-player {
             width: 100%;
             height: 100%;
-            max-height: 100%;
             object-fit: contain;
-            background: #000;
         }
 
+        /* Overlay UI */
         .video-placeholder {
+            position: absolute;
             text-align: center;
-            color: rgba(255, 255, 255, 0.6);
+            color: var(--text-alt);
         }
 
-        .video-placeholder h2 {
-            font-size: 3em;
-            margin-bottom: 15px;
+        .video-overlay-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            pointer-events: none;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
         }
 
+        .overlay-title {
+            font-size: 1.2em;
+            font-weight: 700;
+        }
+
+        .overlay-streamer {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+
+        .overlay-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #444;
+            overflow: hidden;
+        }
+
+        .overlay-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .live-badge {
+            background-color: var(--red-live);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
+        /* Controls Bar */
+        .video-controls {
+            height: 50px;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .video-container:hover .video-controls {
+            opacity: 1;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .control-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1.2em;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .control-btn:hover {
+            opacity: 1;
+        }
+
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .volume-slider {
+            width: 80px;
+            height: 4px;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        /* Quality Dropdown - Simple */
+        .quality-select {
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            cursor: pointer;
+        }
+
+        /* --- Sidebar (Chat) --- */
+        .sidebar {
+            width: 340px;
+            background-color: var(--bg-base);
+            border-left: 1px solid #000;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            height: 50px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            color: var(--text-alt);
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .chat-message {
+            font-size: 0.9em;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .sender-name {
+            font-weight: 700;
+            color: var(--twitch-purple);
+            /* Or random colors later */
+            margin-right: 5px;
+        }
+
+        .chat-input-area {
+            padding: 15px;
+            background-color: var(--bg-base);
+        }
+
+        .chat-input-wrapper {
+            position: relative;
+        }
+
+        .chat-input {
+            width: 100%;
+            background-color: var(--bg-alt);
+            /* Lighter than base */
+            border: 2px solid transparent;
+            border-radius: 4px;
+            padding: 10px;
+            padding-right: 40px;
+            color: var(--text-base);
+            font-family: inherit;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--twitch-purple);
+            background-color: black;
+        }
+
+        .chat-send-btn {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--twitch-purple);
+            border: none;
+            color: white;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8em;
+        }
+
+        /* Reactions Overlay */
         #reaction-overlay {
             position: absolute;
             top: 0;
@@ -139,1150 +418,542 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 10;
+            z-index: 20;
+            overflow: hidden;
         }
 
         .floating-reaction {
             position: absolute;
-            font-size: 3em;
-            animation: float-up 3s ease-out forwards;
+            bottom: 70px;
+            font-size: 2.5em;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+            animation: floatUp 3s ease-out forwards;
+            will-change: transform, opacity;
         }
 
-        @keyframes float-up {
+        @keyframes floatUp {
             0% {
-                transform: translateY(0) scale(1) rotate(0deg);
-                opacity: 1;
+                transform: translateY(50px) scale(0.5) rotate(0deg);
+                opacity: 0;
             }
+
+            10% {
+                opacity: 1;
+                transform: translateY(0) scale(1.2) rotate(-10deg);
+            }
+
+            30% {
+                transform: translateY(-80px) scale(1) rotate(10deg);
+            }
+
+            50% {
+                transform: translateY(-180px) scale(1.1) rotate(-5deg);
+            }
+
+            75% {
+                opacity: 0.8;
+            }
+
             100% {
-                transform: translateY(-250px) scale(1.5) rotate(360deg);
+                transform: translateY(-400px) scale(0.8) rotate(5deg);
                 opacity: 0;
             }
         }
 
-        .video-controls {
-            background: rgba(0, 0, 0, 0.8);
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .control-group {
-            display: flex;
-            gap: 10px;
-        }
-
-        .control-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
-            padding: 10px 18px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.95em;
-            transition: all 0.3s;
-        }
-
-        .control-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .quality-selector {
+        .reaction-bar {
+            padding: 5px 10px;
             display: flex;
             gap: 5px;
-        }
-
-        .quality-option {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85em;
-            transition: all 0.3s;
-        }
-
-        .quality-option:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .quality-option.active {
-            background: #6366f1;
-            border-color: #6366f1;
-        }
-
-        .sidebar {
-            background: #1e293b;
-            display: flex;
-            flex-direction: column;
-            border-left: 1px solid #334155;
-            overflow: hidden;
-            max-height: calc(100vh - 70px);
-        }
-
-        .sidebar-tabs {
-            display: flex;
-            background: #0f172a;
-            border-bottom: 2px solid #334155;
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            background: transparent;
-            color: rgba(255, 255, 255, 0.6);
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.95em;
-            transition: all 0.3s;
-            border-bottom: 3px solid transparent;
-        }
-
-        .tab-btn:hover {
-            color: white;
-            background: #1e293b;
-        }
-
-        .tab-btn.active {
-            color: white;
-            border-bottom-color: #ec4899;
-            background: #1e293b;
-        }
-
-        .tab-content {
-            display: none;
-            flex: 1;
-            flex-direction: column;
-            overflow: hidden;
-            min-height: 0;
-        }
-
-        .tab-content.active {
-            display: flex;
-        }
-
-        .chat-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 15px;
-            overflow: hidden;
-            min-height: 0;
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-            background: #0f172a;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            min-height: 0;
-        }
-
-        .chat-message {
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            background: #1e293b;
-            border-left: 3px solid #ec4899;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .message-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-        }
-
-        .message-sender {
-            font-weight: 700;
-            color: #ec4899;
-        }
-
-        .message-time {
-            font-size: 0.75em;
-            color: #94a3b8;
-        }
-
-        .message-content {
-            color: #e2e8f0;
-            line-height: 1.4;
-        }
-
-        .chat-input-area {
-            display: flex;
-            gap: 8px;
-        }
-
-        .chat-input {
-            flex: 1;
-            padding: 12px;
-            background: #0f172a;
-            border: 2px solid #334155;
-            border-radius: 8px;
-            color: white;
-            font-size: 14px;
-        }
-
-        .chat-input:focus {
-            outline: none;
-            border-color: #ec4899;
-        }
-
-        .send-btn {
-            padding: 12px 20px;
-            background: #ec4899;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .send-btn:hover {
-            background: #db2777;
-        }
-
-        .reactions-container {
-            padding: 20px;
-        }
-
-        .reactions-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .reaction-btn {
-            aspect-ratio: 1;
-            background: #0f172a;
-            border: 2px solid #334155;
-            border-radius: 12px;
-            font-size: 2.5em;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
             justify-content: center;
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .reaction-btn:hover {
-            transform: scale(1.15) rotate(10deg);
-            border-color: #ec4899;
-            background: #1e293b;
-            box-shadow: 0 8px 20px rgba(236, 72, 153, 0.3);
+        .reaction-btn-mini {
+            background: none;
+            border: none;
+            font-size: 1.2em;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background 0.2s;
         }
 
-        .reaction-btn:active {
-            transform: scale(0.9);
+        .reaction-btn-mini:hover {
+            background: var(--bg-hover);
         }
 
-        .info-container {
-            padding: 20px;
-            overflow-y: auto;
-        }
-
-        .info-section {
-            background: #0f172a;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .info-section h3 {
-            color: #ec4899;
-            margin-bottom: 15px;
-            font-size: 1.1em;
-        }
-
-        .streamer-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .streamer-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #ec4899, #8b5cf6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2em;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-
-        .stat-box {
-            background: #1e293b;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .stat-label {
-            font-size: 0.8em;
-            color: #94a3b8;
-            margin-bottom: 5px;
-        }
-
-        .stat-value {
-            font-size: 1.8em;
-            font-weight: 700;
-            color: white;
-        }
-
-        @media (max-width: 1024px) {
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
             .main-layout {
-                grid-template-columns: 1fr;
-                grid-template-rows: 1fr auto;
+                flex-direction: column;
             }
 
             .sidebar {
-                max-height: 400px;
-                border-left: none;
-                border-top: 1px solid #334155;
+                width: 100%;
+                height: 40vh;
+            }
+
+            .video-section {
+                flex: 1;
             }
         }
     </style>
 </head>
-<body>
-    <!-- Header -->
-    <div class="header">
-        <div class="header-left">
-            <button class="back-btn" onclick="window.location.href='live-streams.html'">← Back</button>
-            <div class="stream-title" id="stream-title">Loading...</div>
-            <div class="live-badge">
-                <div class="live-dot"></div>
-                <span>LIVE</span>
-            </div>
-        </div>
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <div class="viewer-count">
-                <span>👁️</span>
-                <span id="viewer-count">0</span>
-                <span>viewers</span>
-            </div>
-            <div id="user-info" style="display: flex; align-items: center; gap: 10px;">
-                <span id="user-name-display" style="font-weight: 600;">Guest</span>
-                <button class="back-btn" id="btn-login" onclick="openAuthModal()" style="padding: 8px 16px;">
-                    🔐 Đăng nhập
-                </button>
-            </div>
-        </div>
-    </div>
 
-    <!-- Main Layout -->
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="live-streams.html" class="logo-container">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"
+                    class="logo-icon">
+                    <defs>
+                        <linearGradient id="logo-gradient" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#00C7FD" />
+                            <stop offset="100%" stop-color="#9146FF" />
+                        </linearGradient>
+                    </defs>
+                    <path
+                        d="M33.5 17.4C35.5 18.55 35.5 21.45 33.5 22.6L13.5 34.15C11.5 35.3 9 33.85 9 31.55V8.45C9 6.15 11.5 4.7 13.5 5.85L33.5 17.4Z"
+                        fill="url(#logo-gradient)" />
+                </svg>
+                <span class="logo-text">StreamG8</span>
+            </a>
+            <div class="nav-links">
+                <!-- Links (empty for now) -->
+            </div>
+        </div>
+
+        <div class="nav-right" id="auth-buttons">
+            <div id="logged-out-view" style="display: flex; gap: 10px;">
+                <button class="btn-auth btn-login" onclick="openLogin()">Đăng nhập</button>
+            </div>
+
+            <div id="logged-in-view" class="user-menu">
+                <span id="nav-user-name" style="font-size: 0.9em; font-weight: 600;">Username</span>
+                <div class="user-avatar-small" id="nav-user-avatar">U</div>
+                <button onclick="logout()" class="btn-auth"
+                    style="background-color: #2f2f31; color: white; margin-left: 5px; border: 1px solid #3fa2ff1c;">Đăng
+                    xuất</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
     <div class="main-layout">
-        <!-- Video Section -->
+        <!-- Video Player Section -->
         <div class="video-section">
             <div class="video-container">
+                <div id="video-placeholder" class="video-placeholder">
+                    <h2>⏳</h2>
+                    <p>Đang tải stream...</p>
+                </div>
+
                 <video id="video-player" autoplay playsinline></video>
-                
-                <div class="video-placeholder" id="video-placeholder">
-                    <h2>🎥</h2>
-                    <p>Đang kết nối đến stream...</p>
-                </div>
-
                 <div id="reaction-overlay"></div>
-            </div>
 
-            <div class="video-controls">
-                <div class="control-group">
-                    <button class="control-btn" id="btn-mute">🔊 Unmuted</button>
-                    <button class="control-btn" id="btn-fullscreen">⛶ Fullscreen</button>
+                <!-- Info Overlay (Visible on Hover in full prod, here static for now) -->
+                <div class="video-overlay-info">
+                    <div class="overlay-title" id="stream-title">Loading Title...</div>
+                    <div class="overlay-streamer">
+                        <div class="overlay-avatar" id="streamer-avatar"></div>
+                        <span id="streamer-name">Streamer</span>
+                        <span class="live-badge">LIVE</span>
+                        <span>👁️ <span id="viewer-count">0</span></span>
+                    </div>
                 </div>
-                <div class="quality-selector">
-                    <div class="quality-option active" data-quality="auto">Auto</div>
-                    <div class="quality-option" data-quality="1080p">1080p</div>
-                    <div class="quality-option" data-quality="720p">720p</div>
-                    <div class="quality-option" data-quality="480p">480p</div>
+
+                <!-- Controls -->
+                <div class="video-controls">
+                    <div class="control-group">
+                        <button class="control-btn" id="btn-playpause">⏯</button>
+                        <div class="volume-container">
+                            <button class="control-btn" id="btn-mute">🔊</button>
+                            <input type="range" class="volume-slider" id="volume-slider" min="0" max="100" value="100">
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <select id="quality-selector" class="quality-select">
+                            <option value="auto">Auto</option>
+                            <option value="1080p">1080p</option>
+                            <option value="144p">144p</option>
+                        </select>
+                        <button class="control-btn" id="btn-fullscreen">⛶</button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Sidebar -->
+        <!-- Sidebar (Chat) -->
         <div class="sidebar">
-            <div class="sidebar-tabs">
-                <button class="tab-btn active" data-tab="chat">💬 Chat</button>
-                <button class="tab-btn" data-tab="reactions">❤️ Reactions</button>
-                <button class="tab-btn" data-tab="info">ℹ️ Info</button>
-            </div>
+            <div class="sidebar-header">Trò chuyện Stream</div>
 
-            <!-- Chat Tab -->
-            <div class="tab-content active" id="tab-chat">
-                <div class="chat-container">
-                    <div class="chat-messages" id="chat-messages">
-                        <div class="chat-message">
-                            <div class="message-header">
-                                <span class="message-sender">System</span>
-                                <span class="message-time">Now</span>
-                            </div>
-                            <div class="message-content">Chào mừng đến với phòng stream! 🎉</div>
-                        </div>
-                    </div>
-                    <div class="chat-input-area">
-                        <input type="text" class="chat-input" id="chat-input" placeholder="Gửi tin nhắn...">
-                        <button class="send-btn" id="btn-send-chat">📤</button>
+            <div class="chat-container">
+                <div class="chat-messages" id="chat-messages">
+                    <div style="color: var(--text-alt); font-size: 0.8em; text-align: center; margin-top: 20px;">
+                        Chào mừng đến với phòng chat!
                     </div>
                 </div>
             </div>
 
-            <!-- Reactions Tab -->
-            <div class="tab-content" id="tab-reactions">
-                <div class="reactions-container">
-                    <h3 style="color: #e2e8f0; margin-bottom: 15px;">Gửi cảm xúc của bạn!</h3>
-                    <div class="reactions-grid">
-                        <button class="reaction-btn" data-reaction="like">👍</button>
-                        <button class="reaction-btn" data-reaction="heart">❤️</button>
-                        <button class="reaction-btn" data-reaction="wow">😮</button>
-                        <button class="reaction-btn" data-reaction="laugh">😂</button>
-                        <button class="reaction-btn" data-reaction="sad">😢</button>
-                        <button class="reaction-btn" data-reaction="fire">🔥</button>
-                        <button class="reaction-btn" data-reaction="clap">👏</button>
-                        <button class="reaction-btn" data-reaction="party">🎉</button>
-                    </div>
-                </div>
+            <!-- Quick Reactions -->
+            <div class="reaction-bar">
+                <button class="reaction-btn-mini" onclick="sendReaction('heart')">❤️</button>
+                <button class="reaction-btn-mini" onclick="sendReaction('laugh')">😂</button>
+                <button class="reaction-btn-mini" onclick="sendReaction('wow')">😮</button>
+                <button class="reaction-btn-mini" onclick="sendReaction('fire')">🔥</button>
             </div>
 
-            <!-- Info Tab -->
-            <div class="tab-content" id="tab-info">
-                <div class="info-container">
-                    <div class="info-section">
-                        <div class="streamer-header">
-                            <div class="streamer-avatar" id="streamer-avatar">🎤</div>
-                            <div>
-                                <h3 id="streamer-name" style="margin: 0;">Streamer Name</h3>
-                                <div style="color: #94a3b8; font-size: 0.9em;">Live Now</div>
-                            </div>
-                        </div>
-                        <div class="stats-grid">
-                            <div class="stat-box">
-                                <div class="stat-label">Viewers</div>
-                                <div class="stat-value" id="info-viewers">0</div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-label">Duration</div>
-                                <div class="stat-value" id="info-duration">00:00</div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-label">Messages</div>
-                                <div class="stat-value" id="info-messages">0</div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-label">Reactions</div>
-                                <div class="stat-value" id="info-reactions">0</div>
-                            </div>
-                        </div>
-                    </div>
+            <!-- Input -->
+            <div class="chat-input-area">
+                <div class="chat-input-wrapper">
+                    <input type="text" class="chat-input" id="chat-input" placeholder="Gửi tin nhắn...">
+                    <button class="chat-send-btn" id="btn-send-chat">Gửi</button>
+                </div>
+                <div style="font-size: 0.7em; color: var(--text-alt); margin-top: 5px; text-align: right;">
+                    <span id="chat-user-display">Đang ẩn danh</span>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Logic -->
     <script>
-        // Configuration
-        const API_URL = 'http://localhost:7880/api/streaming';
-        const WS_URL = 'ws://localhost:7880/api/streaming';
-        const LIVEKIT_URL = 'ws://localhost:7880';
-        
-        // Get stream ID from URL
+        // --- CONFIG ---
+        const PROTOCOL = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const HOST = window.location.host;
+        const API_URL = '/api/streaming';
+        const WS_URL = `${PROTOCOL}//${HOST}/api/streaming`;
+        const LIVEKIT_URL = `${PROTOCOL}//${HOST}`;
+
+        // Get Stream ID
         const urlParams = new URLSearchParams(window.location.search);
         const streamId = urlParams.get('stream') || 'default-stream';
         const ROOM_NAME = streamId;
-        
-        // User management
+
+        // User State
         let USER_ID = null;
         let USER_NAME = null;
-        let USER_DISPLAY_NAME = null;
-        
-        // Generate unique session ID for this tab (stored in sessionStorage, not localStorage)
-        function getOrCreateSessionID() {
-            let sessionID = sessionStorage.getItem('tab_session_id');
-            if (!sessionID) {
-                sessionID = 'tab-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-                sessionStorage.setItem('tab_session_id', sessionID);
-            }
-            return sessionID;
-        }
-        
-        // Initialize user from auth or generate random
-        function initializeUser() {
-            // Always generate unique session ID for this tab
-            const sessionID = getOrCreateSessionID();
-            
-            // Check URL params for auth redirect
-            const urlParams = new URLSearchParams(window.location.search);
-            const authToken = urlParams.get('token');
-            const authName = urlParams.get('name');
-            const authEmail = urlParams.get('email');
-            
-            if (authToken && authName) {
-                // User just logged in/registered
-                localStorage.setItem('auth_token', authToken);
-                localStorage.setItem('user_name', authName);
-                localStorage.setItem('user_email', authEmail || '');
-                USER_DISPLAY_NAME = authName;
-                // Use session ID to ensure each tab is unique, but prefix with user info
-                USER_ID = 'user-' + (authEmail?.split('@')[0] || 'user') + '-' + sessionID;
-                
-                // Remove auth params from URL to prevent redirect loop
-                urlParams.delete('token');
-                urlParams.delete('name');
-                urlParams.delete('email');
-                const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
-                // Use replaceState to avoid adding to history
-                window.history.replaceState({}, '', newUrl);
-            } else {
-                // Check localStorage for existing auth
-                const storedToken = localStorage.getItem('auth_token');
-                const storedName = localStorage.getItem('user_name');
-                
-                if (storedToken && storedName) {
-                    USER_DISPLAY_NAME = storedName;
-                    // Use session ID to ensure each tab is unique
-                    const emailPrefix = localStorage.getItem('user_email')?.split('@')[0] || 'user';
-                    USER_ID = 'user-' + emailPrefix + '-' + sessionID;
-                } else {
-                    // Generate random guest name
-                    const guestNames = ['Người xem', 'Viewer', 'Khách', 'Guest', 'Người dùng'];
-                    USER_DISPLAY_NAME = guestNames[Math.floor(Math.random() * guestNames.length)] + '-' + Math.random().toString(36).substr(2, 6);
-                    USER_ID = 'viewer-' + sessionID;
-                }
-            }
-            
-            // Update UI
-            document.getElementById('user-name-display').textContent = USER_DISPLAY_NAME;
-            const loginBtn = document.getElementById('btn-login');
-            if (localStorage.getItem('auth_token')) {
-                loginBtn.textContent = '👤 ' + USER_DISPLAY_NAME;
-                loginBtn.onclick = () => {
-                    if (confirm('Bạn muốn đăng xuất?')) {
-                        localStorage.removeItem('auth_token');
-                        localStorage.removeItem('user_name');
-                        localStorage.removeItem('user_email');
-                        sessionStorage.removeItem('tab_session_id');
-                        location.reload();
-                    }
-                };
-            }
-        }
-        
-        function openAuthModal() {
-            // Detect if running from file:// or http://
-            const isFileProtocol = window.location.protocol === 'file:';
-            
-            let returnUrl;
-            let authUrl;
-            
-            if (isFileProtocol) {
-                // Running from file:// - use relative path
-                const currentPath = window.location.pathname;
-                const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
-                authUrl = basePath + '/auth.html';
-                returnUrl = encodeURIComponent(window.location.href);
-            } else {
-                // Running from HTTP server
-                returnUrl = encodeURIComponent(window.location.href);
-                authUrl = '/examples/auth.html';
-            }
-            
-            window.location.href = `${authUrl}?return=${returnUrl}`;
-        }
+        let USER_DISPLAY_NAME = 'Guest';
 
-        // State
+        let livekitRoom = null;
+        let currentVideoPublication = null;
         let chatWebSocket = null;
         let reactionsWebSocket = null;
-        let streamStartTime = Date.now();
-        let isMuted = false;
-        
-        // LiveKit state
-        let livekitRoom = null;
+        let autoTimer = null; // For ABR logic
 
-        // Statistics
-        const stats = {
-            viewers: 0,
-            messages: 0,
-            reactions: 0
-        };
-
-        // Flag to prevent multiple initializations
-        let isInitialized = false;
-
-        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            // Prevent multiple initializations
-            if (isInitialized) {
-                console.warn('⚠️ Already initialized, skipping...');
-                return;
-            }
-            isInitialized = true;
-            
-            // Initialize user first
-            initializeUser();
-            
-            // Check if LiveKit SDK loaded
-            if (typeof LivekitClient === 'undefined') {
-                console.error('❌ LiveKit SDK not loaded!');
-                alert('❌ Error: LiveKit SDK failed to load. Please refresh the page.');
-                return;
-            }
-            console.log('✅ LiveKit SDK loaded successfully');
-            
-            loadStreamInfo();
-            setupEventListeners();
+            initUserIdentity();
+            setupUI();
             connectToStream();
-            startDurationTimer();
-            // REMOVED: simulateViewers() - Use real viewer count from LiveKit
         });
 
-        function setupEventListeners() {
-            // Tabs
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-            });
+        function initUserIdentity() {
+            // 1. Check URL Params (Priority)
+            const pName = urlParams.get('name');
+            const pEmail = urlParams.get('email');
 
-            // Chat
-            document.getElementById('btn-send-chat').addEventListener('click', sendChatMessage);
-            document.getElementById('chat-input').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') sendChatMessage();
-            });
-
-            // Reactions
-            document.querySelectorAll('.reaction-btn').forEach(btn => {
-                btn.addEventListener('click', () => sendReaction(btn.dataset.reaction));
-            });
-
-            // Video controls
-            document.getElementById('btn-mute').addEventListener('click', toggleMute);
-            document.getElementById('btn-fullscreen').addEventListener('click', toggleFullscreen);
-
-            // Quality selector
-            document.querySelectorAll('.quality-option').forEach(opt => {
-                opt.addEventListener('click', () => selectQuality(opt));
-            });
-        }
-
-        function loadStreamInfo() {
-            // Load stream metadata from localStorage
-            try {
-                const stored = localStorage.getItem('livekit_active_streams');
-                if (stored) {
-                    const streams = JSON.parse(stored);
-                    const currentStream = streams.find(s => s.id === ROOM_NAME);
-                    
-                    if (currentStream) {
-                        document.getElementById('stream-title').textContent = currentStream.title;
-                        document.getElementById('streamer-name').textContent = currentStream.streamer;
-                        document.getElementById('streamer-avatar').textContent = currentStream.avatar ? '' : '🎤';
-                        if (currentStream.avatar) {
-                            const avatarImg = document.createElement('img');
-                            avatarImg.src = currentStream.avatar;
-                            avatarImg.style.width = '100%';
-                            avatarImg.style.height = '100%';
-                            avatarImg.style.borderRadius = '50%';
-                            document.getElementById('streamer-avatar').appendChild(avatarImg);
-                        }
-                        return;
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading stream info:', error);
+            if (pName) {
+                localStorage.setItem('user_name', pName);
+                if (pEmail) localStorage.setItem('user_email', pEmail);
             }
-            
-            // Fallback
-            document.getElementById('stream-title').textContent = 'Live Stream';
-            document.getElementById('streamer-name').textContent = 'Streamer';
-            document.getElementById('streamer-avatar').textContent = '🎤';
+
+            // 2. Load from Storage
+            const sName = localStorage.getItem('user_name');
+            const sEmail = localStorage.getItem('user_email');
+
+            const sessionID = 'sess-' + Math.random().toString(36).substr(2, 6);
+
+            if (sName) {
+                USER_DISPLAY_NAME = sName;
+                const emailPrefix = sEmail ? sEmail.split('@')[0] : 'user';
+                USER_ID = `${emailPrefix}-${sessionID}`;
+
+                document.getElementById('logged-out-view').style.display = 'none';
+                document.getElementById('logged-in-view').style.display = 'flex';
+                document.getElementById('logged-in-view').classList.add('active');
+
+                document.getElementById('nav-user-name').textContent = USER_DISPLAY_NAME;
+                document.getElementById('nav-user-avatar').textContent = USER_DISPLAY_NAME.charAt(0).toUpperCase();
+
+                document.getElementById('chat-user-display').textContent = 'Bạn là: ' + USER_DISPLAY_NAME;
+            } else {
+                USER_DISPLAY_NAME = 'Guest ' + Math.random().toString(36).substr(2, 4);
+                USER_ID = 'guest-' + sessionID;
+                document.getElementById('chat-user-display').textContent = 'Bạn là: ' + USER_DISPLAY_NAME;
+
+                document.getElementById('logged-out-view').style.display = 'flex';
+                document.getElementById('logged-in-view').style.display = 'none';
+            }
         }
 
-        function setupChatWebSocket(ws) {
-            ws.onopen = () => {
-                console.log('✅ Chat WebSocket connected');
-                // Show success message in chat
-                const chatMessages = document.getElementById('chat-messages');
-                const notice = document.createElement('div');
-                notice.style.cssText = 'padding: 8px; background: #d1fae5; color: #065f46; border-radius: 5px; margin: 10px; text-align: center; font-size: 0.9em;';
-                notice.textContent = '✅ Chat đã sẵn sàng!';
-                chatMessages.appendChild(notice);
-                setTimeout(() => notice.remove(), 3000);
+        function openLogin() {
+            const returnUrl = encodeURIComponent(window.location.href);
+            if (window.location.protocol === 'file:') {
+                window.location.href = 'auth.html?return=' + returnUrl;
+            } else {
+                window.location.href = '/examples/auth.html?return=' + returnUrl;
+            }
+        }
+
+        function logout() {
+            if (confirm('Đăng xuất?')) {
+                localStorage.removeItem('user_name');
+                localStorage.removeItem('user_email');
+                localStorage.removeItem('auth_token');
+                location.reload();
+            }
+        }
+
+        function setupUI() {
+            // Video Controls
+            const video = document.getElementById('video-player');
+            const btnPlay = document.getElementById('btn-playpause');
+            const btnMute = document.getElementById('btn-mute');
+            const slider = document.getElementById('volume-slider');
+            const fsBtn = document.getElementById('btn-fullscreen');
+
+            btnPlay.onclick = () => {
+                if (video.paused) { video.play(); btnPlay.textContent = '⏸'; }
+                else { video.pause(); btnPlay.textContent = '▶'; }
+            }
+
+            // Volume Control - Applies to both Video element and separate Audio Tracks
+            const setVolume = (val) => {
+                // 1. Video Element (if mixed)
+                video.volume = val;
+                video.muted = (val === 0);
+
+                // 2. Separate Audio Tracks (LiveKit usually separates them)
+                document.querySelectorAll('.stream-audio').forEach(el => {
+                    el.volume = val;
+                    el.muted = (val === 0);
+                });
+
+                // Icon Update
+                if (val === 0) btnMute.textContent = '🔇';
+                else if (val < 0.5) btnMute.textContent = '🔉';
+                else btnMute.textContent = '🔊';
             };
 
-            ws.onerror = (error) => {
-                console.error('❌ Chat WebSocket error:', error);
+            slider.oninput = (e) => {
+                setVolume(e.target.value / 100);
+            }
+
+            btnMute.onclick = () => {
+                const current = video.volume;
+                if (current > 0) {
+                    // Mute
+                    video.dataset.lastVolume = current;
+                    slider.value = 0;
+                    setVolume(0);
+                } else {
+                    // Unmute
+                    const last = video.dataset.lastVolume || 1;
+                    slider.value = last * 100;
+                    setVolume(last);
+                }
+            }
+
+            fsBtn.onclick = () => {
+                if (!document.fullscreenElement) document.querySelector('.video-container').requestFullscreen();
+                else document.exitFullscreen();
             };
 
-            ws.onclose = (event) => {
-                console.log('Chat WebSocket closed. Code:', event.code, 'Reason:', event.reason);
-                // Note: Using LiveKit DataChannel for chat now, WebSocket is fallback only
-            };
+            // Quality
+            document.getElementById('quality-selector').onchange = (e) => {
+                const val = e.target.value;
+                if (!currentVideoPublication) return;
 
-            ws.onmessage = (event) => {
-                try {
-                    const message = JSON.parse(event.data);
-                    addChatMessage(message);
-                    stats.messages++;
-                    updateStats();
-                } catch (e) {
-                    console.error('Error parsing chat message:', e);
+                if (val === 'auto') {
+                    startAutoMode(currentVideoPublication);
+                } else if (val === '1080p') {
+                    stopAutoMode();
+                    currentVideoPublication.setVideoQuality(LivekitClient.VideoQuality.HIGH);
+                    console.log('🔒 Manual Quality: HIGH');
+                } else if (val === '144p') {
+                    stopAutoMode();
+                    currentVideoPublication.setVideoQuality(LivekitClient.VideoQuality.LOW);
+                    console.log('🔒 Manual Quality: LOW');
                 }
             };
+
+            // Chat setup
+            const sendBtn = document.getElementById('btn-send-chat');
+            const chatInput = document.getElementById('chat-input');
+            const send = () => {
+                const txt = chatInput.value.trim();
+                if (!txt) return;
+                sendChatMessage(txt);
+                chatInput.value = '';
+            };
+            sendBtn.onclick = send;
+            chatInput.onkeypress = (e) => { if (e.key === 'Enter') send(); }
         }
 
-        function setupReactionsWebSocket(ws) {
-            ws.onopen = () => {
-                console.log('✅ Reactions WebSocket connected');
-            };
-
-            ws.onerror = (error) => {
-                console.warn('⚠️ Reactions WebSocket error:', error);
-            };
-
-            ws.onclose = () => {
-                console.log('Reactions WebSocket closed');
-            };
-
-            ws.onmessage = (event) => {
-                try {
-                    const reaction = JSON.parse(event.data);
-                    showReactionAnimation(reaction);
-                    stats.reactions++;
-                    updateStats();
-                } catch (e) {
-                    console.error('Error parsing reaction:', e);
-                }
-            };
-        }
-
+        // --- LIVEKIT & STREAM LOGIC ---
         async function connectToStream() {
             try {
-                // Step 1: Connect WebSockets for chat/reactions (non-blocking)
-                try {
-                    chatWebSocket = new WebSocket(`${WS_URL}/chat/ws?room_name=${ROOM_NAME}&user_id=${USER_ID}`);
-                    setupChatWebSocket(chatWebSocket);
-                } catch (wsError) {
-                    console.warn('⚠️ Failed to connect chat WebSocket:', wsError);
-                }
-
-                try {
-                    reactionsWebSocket = new WebSocket(`${WS_URL}/reactions/ws?room_name=${ROOM_NAME}`);
-                    setupReactionsWebSocket(reactionsWebSocket);
-                } catch (wsError) {
-                    console.warn('⚠️ Failed to connect reactions WebSocket:', wsError);
-                }
-
-                // Step 2: Get access token from server
-                updateConnectionStatus('connecting');
-                
-                // Ensure USER_ID is set
-                if (!USER_ID) {
-                    USER_ID = 'viewer-' + Math.random().toString(36).substr(2, 9);
-                }
-                
-                const tokenResponse = await fetch(`${API_URL}/token`, {
+                // Token...
+                const res = await fetch(`${API_URL}/token`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        room_name: ROOM_NAME,
-                        identity: USER_ID,
-                        is_publisher: false
-                    })
+                    body: JSON.stringify({ room_name: ROOM_NAME, identity: USER_ID, name: USER_DISPLAY_NAME, is_publisher: false })
+                });
+                if (!res.ok) throw new Error('Token failed');
+                const { token } = await res.json();
+
+                // LiveKit Setup
+                livekitRoom = new LivekitClient.Room({
+                    adaptiveStream: false,
+                    dynacast: true
                 });
 
-                if (!tokenResponse.ok) {
-                    throw new Error('Failed to get access token');
-                }
-
-                const { token } = await tokenResponse.json();
-                console.log('✅ Got viewer access token');
-
-                // Step 3: Connect to LiveKit Room
-                updateConnectionStatus('connecting-livekit');
-                
-                livekitRoom = new LivekitClient.Room();
-
-                // Setup event listeners
                 livekitRoom.on(LivekitClient.RoomEvent.TrackSubscribed, (track, publication, participant) => {
-                    console.log('✅ Subscribed to track from:', participant.identity);
-                    
                     if (track.kind === 'video') {
-                        const videoElement = document.getElementById('video-player');
-                        track.attach(videoElement);
-                        
-                        // Hide placeholder
+                        const video = document.getElementById('video-player');
+                        track.attach(video);
                         document.getElementById('video-placeholder').style.display = 'none';
-                        videoElement.style.display = 'block';
-                        
-                        updateConnectionStatus('streaming');
+                        currentVideoPublication = publication;
+
+                        // INITIALIZE: Force High Quality to start
+                        publication.setVideoQuality(LivekitClient.VideoQuality.HIGH);
+
+                        // Start Auto Mode
+                        startAutoMode(publication);
+
+                        document.getElementById('streamer-name').textContent = participant.identity.split('-')[1] || 'Streamer';
+                    }
+                    if (track.kind === 'audio') {
+                        // CRITICAL FIX: Capture audio element and append to DOM for volume control
+                        const audioEl = track.attach();
+                        audioEl.className = 'stream-audio';
+                        document.body.appendChild(audioEl);
+
+                        // Sync with current slider value
+                        const slider = document.getElementById('volume-slider');
+                        audioEl.volume = slider.value / 100;
                     }
                 });
 
-                livekitRoom.on(LivekitClient.RoomEvent.TrackUnsubscribed, (track, publication, participant) => {
-                    console.log('Track unsubscribed from:', participant.identity);
-                    track.detach();
-                    
-                    // Show placeholder
-                    document.getElementById('video-placeholder').style.display = 'flex';
-                    document.getElementById('video-player').style.display = 'none';
-                    updateConnectionStatus('no-stream');
+                livekitRoom.on(LivekitClient.RoomEvent.TrackUnsubscribed, (track) => {
+                    track.detach(); // Removes element from DOM automatically
+                    if (track.kind === 'video') document.getElementById('video-placeholder').style.display = 'block';
                 });
 
-                livekitRoom.on(LivekitClient.RoomEvent.Disconnected, () => {
-                    console.log('Disconnected from room');
-                    updateConnectionStatus('disconnected');
+                // Data & Viewer Count
+                livekitRoom.on(LivekitClient.RoomEvent.DataReceived, (payload) => {
+                    const decoder = new TextDecoder();
+                    const msg = JSON.parse(decoder.decode(payload));
+                    if (msg.type === 'chat') addChatMessageUI(msg.sender_name, msg.content);
+                    else if (msg.type === 'reaction') showReactionAnim(msg.reaction_type);
                 });
 
-                livekitRoom.on(LivekitClient.RoomEvent.ParticipantConnected, (participant) => {
-                    // Count actual remote participants (streamer + other viewers)
-                    const actualCount = Array.from(livekitRoom.remoteParticipants.values()).length;
-                    console.log('Participant joined:', participant.identity, '| Actual count:', actualCount);
-                    stats.viewers = actualCount;
-                    updateStats();
-                });
+                const updateViewers = () => document.getElementById('viewer-count').textContent = livekitRoom.remoteParticipants.size + 1;
+                livekitRoom.on(LivekitClient.RoomEvent.ParticipantConnected, updateViewers);
+                livekitRoom.on(LivekitClient.RoomEvent.ParticipantDisconnected, updateViewers);
 
-                livekitRoom.on(LivekitClient.RoomEvent.ParticipantDisconnected, (participant) => {
-                    // Count actual remote participants
-                    const actualCount = Array.from(livekitRoom.remoteParticipants.values()).length;
-                    console.log('Participant left:', participant.identity, '| Actual count:', actualCount);
-                    stats.viewers = actualCount;
-                    updateStats();
-                });
-
-                // Listen for data messages (chat via LiveKit DataChannel)
-                livekitRoom.on(LivekitClient.RoomEvent.DataReceived, (payload, participant) => {
-                    try {
-                        const decoder = new TextDecoder();
-                        const text = decoder.decode(payload);
-                        const data = JSON.parse(text);
-                        
-                        if (data.type === 'chat') {
-                            console.log('📨 Chat via LiveKit from:', data.sender_name || participant?.identity);
-                            // Always use sender_name from message data, not participant.identity
-                            // participant.identity is USER_ID, not display name
-                            addChatMessage({
-                                sender_name: data.sender_name || 'Unknown',
-                                content: data.content,
-                                timestamp: data.timestamp || new Date().toISOString()
-                            });
-                            stats.messages++;
-                            updateStats();
-                        } else if (data.type === 'reaction') {
-                            console.log('❤️ Reaction via LiveKit:', data.reaction_type);
-                            showReactionAnimation(data);
-                            stats.reactions++;
-                            updateStats();
-                        }
-                    } catch (e) {
-                        console.error('Error processing data:', e);
-                    }
-                });
-
-                // Connect to room
                 await livekitRoom.connect(LIVEKIT_URL, token);
-                console.log('✅ Connected to LiveKit room:', ROOM_NAME);
-                
-                // Count existing participants after connection
-                // Wait a bit for participant events to fire, then count
-                setTimeout(() => {
-                    const remoteCount = Array.from(livekitRoom.remoteParticipants?.values() || []).length;
-                    stats.viewers = remoteCount; // Only count actual remote participants (streamers/other viewers)
-                    console.log('Initial viewer count updated:', stats.viewers, 'remote participants');
-                    updateStats();
-                }, 500);
-                
-                updateConnectionStatus('waiting');
-                
-            } catch (error) {
-                console.error('Connection error:', error);
-                updateConnectionStatus('error');
+                console.log('Connected to Room:', ROOM_NAME);
+                updateViewers();
+
+            } catch (e) {
+                console.error(e);
+                document.querySelector('#video-placeholder h2').textContent = '⚠️ Lỗi';
             }
         }
 
-        function updateConnectionStatus(status) {
-            const placeholder = document.getElementById('video-placeholder');
-            
-            switch(status) {
-                case 'connecting':
-                    placeholder.innerHTML = '<h2>🔗 Đang kết nối...</h2><p>Đang lấy access token...</p>';
-                    break;
-                case 'connecting-livekit':
-                    placeholder.innerHTML = '<h2>� Đang kết nối LiveKit...</h2><p>Đang join room...</p>';
-                    break;
-                case 'waiting':
-                    placeholder.innerHTML = '<h2>⏳ Đang chờ stream...</h2><p>Đã kết nối! Đang chờ streamer bắt đầu phát...</p>';
-                    break;
-                case 'streaming':
-                    placeholder.innerHTML = '<h2>🎥 Đang xem stream!</h2>';
-                    break;
-                case 'no-stream':
-                    placeholder.innerHTML = '<h2>⏸️ Stream đã kết thúc</h2><p>Streamer đã dừng phát.</p>';
-                    break;
-                case 'disconnected':
-                    placeholder.innerHTML = '<h2>📡 Mất kết nối</h2><p>Đã ngắt kết nối khỏi room.</p>';
-                    break;
-                case 'error':
-                    placeholder.innerHTML = '<h2>❌ Lỗi kết nối</h2><p>Không thể kết nối. Server có đang chạy không?</p>';
-                    break;
+        // --- CHAT & REACTION HELPERS ---
+        async function sendChatMessage(content) {
+            const msg = { type: 'chat', sender_name: USER_DISPLAY_NAME, content: content, timestamp: new Date().toISOString() };
+            addChatMessageUI(USER_DISPLAY_NAME, content);
+            if (livekitRoom) {
+                const data = new TextEncoder().encode(JSON.stringify(msg));
+                await livekitRoom.localParticipant.publishData(data, { reliable: true });
             }
         }
 
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            document.getElementById(`tab-${tabName}`).classList.add('active');
-        }
-
-        async function sendChatMessage() {
-            const input = document.getElementById('chat-input');
-            const content = input.value.trim();
-
-            if (!content) return;
-
-            // Ensure USER_DISPLAY_NAME is set
-            if (!USER_DISPLAY_NAME) {
-                const storedName = localStorage.getItem('user_name');
-                if (storedName) {
-                    USER_DISPLAY_NAME = storedName;
-                } else {
-                    USER_DISPLAY_NAME = 'Guest-' + Math.random().toString(36).substr(2, 6);
-                }
-            }
-
-            try {
-                // Send via LiveKit DataChannel instead of WebSocket
-                if (livekitRoom && livekitRoom.state === 'connected') {
-                    console.log('📤 Preparing to send chat via LiveKit...');
-                    console.log('Room state:', livekitRoom.state);
-                    console.log('Sender name:', USER_DISPLAY_NAME);
-                    
-                    const message = {
-                        type: 'chat',
-                        sender_name: USER_DISPLAY_NAME, // Always use display name, not USER_ID
-                        content: content,
-                        timestamp: new Date().toISOString()
-                    };
-
-                    console.log('Message object:', message);
-
-                    const encoder = new TextEncoder();
-                    const data = encoder.encode(JSON.stringify(message));
-                    
-                    console.log('Encoded data size:', data.byteLength, 'bytes');
-                    
-                    // Send to all participants
-                    await livekitRoom.localParticipant.publishData(data, { reliable: true });
-                    
-                    console.log('✅ Chat sent via LiveKit DataChannel');
-                    console.log('Number of remote participants:', livekitRoom?.participants?.size || 0);
-                    
-                    input.value = '';
-                    
-                    // Add to local chat immediately
-                    addChatMessage(message);
-                    
-                } else {
-                    console.warn('⚠️ LiveKit room not connected. State:', livekitRoom?.state);
-                    
-                    // Fallback to WebSocket if available
-                    if (!chatWebSocket || chatWebSocket.readyState !== WebSocket.OPEN) {
-                        const chatMessages = document.getElementById('chat-messages');
-                        const notice = document.createElement('div');
-                        notice.style.cssText = 'padding: 10px; background: #fee2e2; color: #991b1b; border-radius: 5px; margin: 10px; text-align: center;';
-                        notice.innerHTML = `<strong>❌ Chưa kết nối LiveKit</strong><br><small>Vui lòng đợi kết nối hoàn tất.</small>`;
-                        chatMessages.appendChild(notice);
-                        setTimeout(() => notice.remove(), 3000);
-                        return;
-                    }
-
-                    // Send via WebSocket
-                    const message = {
-                        room_name: ROOM_NAME,
-                        sender_id: USER_ID,
-                        sender_name: USER_DISPLAY_NAME, // Always use display name
-                        content: content,
-                        message_type: 'text',
-                        timestamp: new Date().toISOString()
-                    };
-
-                    chatWebSocket.send(JSON.stringify(message));
-                    input.value = '';
-                    addChatMessage(message);
-                }
-            } catch (error) {
-                console.error('Error sending message:', error);
-                alert('❌ Không thể gửi tin nhắn: ' + error.message);
-            }
-        }
-
-        async function sendReaction(type) {
-            // Ensure USER_DISPLAY_NAME is set
-            if (!USER_DISPLAY_NAME) {
-                const storedName = localStorage.getItem('user_name');
-                if (storedName) {
-                    USER_DISPLAY_NAME = storedName;
-                } else {
-                    USER_DISPLAY_NAME = 'Guest-' + Math.random().toString(36).substr(2, 6);
-                }
-            }
-
-            try {
-                // Send via LiveKit DataChannel
-                if (livekitRoom && livekitRoom.state === 'connected') {
-                    const reaction = {
-                        type: 'reaction',
-                        user_name: USER_DISPLAY_NAME, // Always use display name
-                        reaction_type: type,
-                        x: Math.random() * 0.8 + 0.1,
-                        y: 0.8,
-                        timestamp: new Date().toISOString()
-                    };
-
-                    const encoder = new TextEncoder();
-                    const data = encoder.encode(JSON.stringify(reaction));
-                    
-                    await livekitRoom.localParticipant.publishData(data, { reliable: false });
-                    
-                    console.log('✅ Reaction sent via LiveKit:', type);
-                    showReactionAnimation(reaction);
-                    
-                } else {
-                    // Fallback to WebSocket
-                    if (!reactionsWebSocket || reactionsWebSocket.readyState !== WebSocket.OPEN) {
-                        console.warn('⚠️ Reactions not available');
-                        return;
-                    }
-
-                    const reaction = {
-                        room_name: ROOM_NAME,
-                        user_id: USER_ID,
-                        user_name: USER_DISPLAY_NAME, // Always use display name
-                        reaction_type: type,
-                        x: Math.random() * 0.8 + 0.1,
-                        y: 0.8,
-                        timestamp: new Date().toISOString()
-                    };
-
-                    reactionsWebSocket.send(JSON.stringify(reaction));
-                    showReactionAnimation(reaction);
-                }
-            } catch (error) {
-                console.error('Error sending reaction:', error);
-            }
-        }
-
-        function addChatMessage(message) {
+        function addChatMessageUI(sender, content) {
+            const div = document.createElement('div');
+            div.className = 'chat-message';
+            div.innerHTML = `<span class="sender-name">${sender}:</span><span class="message-text">${content}</span>`;
             const container = document.getElementById('chat-messages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'chat-message';
-            
-            const time = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-            
-            messageDiv.innerHTML = `
-                <div class="message-header">
-                    <span class="message-sender">${message.sender_name || 'User'}</span>
-                    <span class="message-time">${time}</span>
-                </div>
-                <div class="message-content">${message.content}</div>
-            `;
-            
-            container.appendChild(messageDiv);
+            container.appendChild(div);
             container.scrollTop = container.scrollHeight;
         }
 
-        function showReactionAnimation(reaction) {
-            const overlay = document.getElementById('reaction-overlay');
-            const emoji = document.createElement('div');
-            emoji.className = 'floating-reaction';
-            
-            // Get reaction type - try reaction_type first, then type (but not if type='reaction')
-            const reactionType = reaction.reaction_type || (reaction.type !== 'reaction' ? reaction.type : null);
-            emoji.textContent = getReactionEmoji(reactionType);
-            
-            emoji.style.left = (reaction.x ? reaction.x * 100 : Math.random() * 90) + '%';
-            emoji.style.bottom = '0';
-
-            overlay.appendChild(emoji);
-            setTimeout(() => emoji.remove(), 3000);
-        }
-
-        function getReactionEmoji(type) {
-            const emojis = {
-                like: '👍', heart: '❤️', wow: '😮', laugh: '😂',
-                sad: '😢', fire: '🔥', clap: '👏', party: '🎉'
-            };
-            return emojis[type] || '❤️';
-        }
-
-        function toggleMute() {
-            const video = document.getElementById('video-player');
-            const btn = document.getElementById('btn-mute');
-            isMuted = !isMuted;
-            video.muted = isMuted;
-            btn.textContent = isMuted ? '🔇 Muted' : '🔊 Unmuted';
-        }
-
-        function toggleFullscreen() {
-            const container = document.querySelector('.video-container');
-            if (!document.fullscreenElement) {
-                container.requestFullscreen();
-            } else {
-                document.exitFullscreen();
+        async function sendReaction(type) {
+            showReactionAnim(type);
+            if (livekitRoom) {
+                const msg = { type: 'reaction', reaction_type: type, sender_name: USER_DISPLAY_NAME };
+                const data = new TextEncoder().encode(JSON.stringify(msg));
+                await livekitRoom.localParticipant.publishData(data, { reliable: false });
             }
         }
 
-        function selectQuality(option) {
-            document.querySelectorAll('.quality-option').forEach(opt => opt.classList.remove('active'));
-            option.classList.add('active');
+        function showReactionAnim(type) {
+            const emojis = { heart: '❤️', laugh: '😂', wow: '😮', fire: '🔥' };
+            const el = document.createElement('div');
+            el.className = 'floating-reaction';
+            el.textContent = emojis[type] || '❤️';
+            el.style.left = (Math.random() * 80 + 10) + '%';
+            document.getElementById('reaction-overlay').appendChild(el);
+            setTimeout(() => el.remove(), 3000);
         }
 
-        function updateStats() {
-            // Update header viewer count
-            const viewerCountElement = document.getElementById('viewer-count');
-            if (viewerCountElement) {
-                viewerCountElement.textContent = stats.viewers;
+        // --- CUSTOM ABR LOGIC (Refined) ---
+        async function getNetworkScore(publication) {
+            if (!publication.track) return null;
+            // Wrapped in try-catch for safety
+            try {
+                const stats = await publication.track.getRTCStats();
+                let rtt = 0, packetLoss = 0;
+                stats.forEach(report => {
+                    if (report.type === 'candidate-pair' && report.state === 'succeeded') rtt = report.currentRoundTripTime || rtt;
+                    if (report.type === 'inbound-rtp' && report.kind === 'video') packetLoss = report.packetsLost || packetLoss;
+                });
+                return { rtt, packetLoss };
+            } catch (e) {
+                console.warn('Stats error:', e);
+                return null;
             }
-            
-            // Update info tab stats
-            document.getElementById('info-viewers').textContent = stats.viewers;
-            document.getElementById('info-messages').textContent = stats.messages;
-            document.getElementById('info-reactions').textContent = stats.reactions;
         }
 
-        function startDurationTimer() {
-            setInterval(() => {
-                const duration = Math.floor((Date.now() - streamStartTime) / 1000);
-                const minutes = Math.floor(duration / 60);
-                const seconds = duration % 60;
-                document.getElementById('info-duration').textContent = 
-                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }, 1000);
+        function startAutoMode(publication) {
+            stopAutoMode();
+            console.log("🛠️ ABR: Started");
+
+            // Initial Check
+            publication.setVideoQuality(LivekitClient.VideoQuality.HIGH);
+
+            let lastLoss = -1;
+            autoTimer = setInterval(async () => {
+                if (!publication || !publication.track) return;
+
+                const net = await getNetworkScore(publication);
+                if (!net) return;
+
+                const currentLoss = net.packetLoss;
+                if (lastLoss === -1) { lastLoss = currentLoss; return; }
+                const delta = currentLoss - lastLoss;
+                lastLoss = currentLoss;
+
+                if (delta > 5 || net.rtt > 0.2) { // Slightly more sensitive
+                    console.log(`📉 ABR: Poor Connection (Loss: ${delta}, RTT: ${net.rtt.toFixed(2)}) -> LOW`);
+                    publication.setVideoQuality(LivekitClient.VideoQuality.LOW);
+                } else {
+                    // Check if we can upgrade? Always try high if good.
+                    // console.log('📈 ABR: Connection Stable -> HIGH');
+                    publication.setVideoQuality(LivekitClient.VideoQuality.HIGH);
+                }
+            }, 3000); // 3 seconds interval
         }
 
-        // REMOVED simulateViewers() - Now using REAL viewer counts from LiveKit ParticipantConnected/Disconnected events
+        function stopAutoMode() {
+            if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+        }
+
     </script>
 </body>
+
 </html>

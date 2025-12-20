@@ -3,10 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Streamer Dashboard - Advanced Live Streaming</title>
+    <title>Streamer Dashboard - StreamG8</title>
     <!-- LiveKit Client SDK - Local File -->
     <script src="libs/livekit-client.umd.min.js"></script>
     <style>
+        :root {
+            --twitch-purple: #9147ff;
+            --twitch-purple-hover: #772ce8;
+            --bg-body: #0e0e10;
+            --bg-base: #18181b;
+            --bg-alt: #1f1f23;
+            --bg-hover: #26262c;
+            --text-base: #efeff1;
+            --text-alt: #adadb8;
+            --red-live: #eb0400;
+            --green-success: #00f593;
+            --border-color: #303032;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -14,126 +28,201 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-base);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
         }
 
-        .header {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
-            color: white;
-            padding: 25px 30px;
+        /* --- Navbar --- */
+        .navbar {
+            height: 50px;
+            background-color: var(--bg-base);
+            border-bottom: 1px solid black;
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: center;
+            padding: 0 15px;
+            flex-shrink: 0;
+            z-index: 1000;
         }
 
-        .header-left h1 {
-            font-size: 2em;
-            margin-bottom: 5px;
-        }
-
-        .header-left p {
-            font-size: 0.95em;
-            opacity: 0.9;
-        }
-
-        .header-right {
+        .nav-logo {
             display: flex;
-            gap: 15px;
             align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .nav-logo svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .nav-logo span {
+            font-weight: 800;
+            color: var(--twitch-purple);
+            font-size: 1.2em;
+        }
+
+        .nav-status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
         .connection-badge {
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: #2f2f35;
+            color: var(--text-alt);
         }
 
-        .badge-connected {
-            background: #10b981;
-            color: white;
+        .connection-badge.badge-connected {
+            background: var(--green-success);
+            color: black;
         }
 
-        .badge-disconnected {
-            background: #ef4444;
-            color: white;
-        }
-
-        .badge-streaming {
-            background: #f59e0b;
+        .connection-badge.badge-streaming {
+            background: var(--red-live);
             color: white;
             animation: pulse 2s infinite;
         }
 
+<<<<<<< Updated upstream
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.7; }
+=======
+        .connection-badge.badge-disconnected {
+            background: #333;
+            color: #888;
         }
 
-        .user-info {
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+
+            100% {
+                opacity: 1;
+            }
+>>>>>>> Stashed changes
+        }
+
+        .user-menu {
             display: flex;
             align-items: center;
             gap: 10px;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 8px 16px;
-            border-radius: 20px;
         }
 
-        .user-avatar {
-            width: 35px;
-            height: 35px;
+        .user-avatar-small {
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            background: var(--twitch-purple);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2em;
+            font-weight: bold;
         }
 
+        /* --- Main Layout --- */
         .main-layout {
             display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 20px;
-            padding: 20px;
+            grid-template-columns: 350px 1fr 350px;
+            flex: 1;
+            height: calc(100vh - 50px);
+            overflow: hidden;
         }
 
-        .left-panel {
+        /* --- Panels --- */
+        .panel {
+            background: var(--bg-base);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid black;
+            border-left: 1px solid black;
+        }
+
+        .panel-header {
+            padding: 10px 15px;
+            font-weight: 700;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-alt);
+        }
+
+        .panel-content {
+            padding: 15px;
+            overflow-y: auto;
+            flex: 1;
             display: flex;
             flex-direction: column;
             gap: 20px;
         }
 
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+        /* --- Forms & Inputs --- */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
-        .btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        label {
+            font-size: 0.85em;
+            font-weight: 700;
+            color: var(--text-alt);
+        }
+
+        input[type="text"],
+        select,
+        input[type="file"] {
+            background: var(--bg-body);
+            border: 2px solid transparent;
+            color: var(--text-base);
+            padding: 8px 10px;
+            border-radius: 4px;
+            font-family: inherit;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            border-color: var(--twitch-purple);
+            background: black;
+        }
+
+        /* --- Buttons --- */
+        .btn {
+            border: none;
+            border-radius: 4px;
+            padding: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.9em;
         }
 
         .btn:disabled {
@@ -142,95 +231,89 @@
         }
 
         .btn-primary {
-            background: #6366f1;
+            background: var(--twitch-purple);
             color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--twitch-purple-hover);
         }
 
         .btn-success {
-            background: #10b981;
-            color: white;
+            background: var(--green-success);
+            color: black;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            opacity: 0.9;
         }
 
         .btn-danger {
-            background: #ef4444;
+            background: var(--red-live);
             color: white;
         }
 
-        .btn-warning {
-            background: #f59e0b;
-            color: white;
+        .btn-danger:hover:not(:disabled) {
+            opacity: 0.8;
         }
 
         .btn-secondary {
-            background: #6b7280;
+            background: var(--bg-hover);
+            color: var(--text-base);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #3a3a40;
+        }
+
+        .btn.active,
+        .quality-btn.active {
+            background: var(--twitch-purple);
             color: white;
+            border-color: var(--twitch-purple-hover);
+        }
+
+        /* --- Middle Video --- */
+        .video-wrapper {
+            background: black;
+            position: relative;
+            display: flex;
+            flex-direction: column;
         }
 
         .video-container {
+            flex: 1;
             position: relative;
-            width: 100%;
-            height: 600px;
-            background: #000;
-            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
 
         #main-video {
             width: 100%;
             height: 100%;
             object-fit: contain;
-            background: #000;
         }
 
-        .video-overlay {
+        /* Overlays */
+        .stream-overlay-top {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
             pointer-events: none;
         }
 
-        .stream-controls-overlay {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            right: 20px;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            pointer-events: all;
-        }
-
-        .stream-info-overlay {
-            position: absolute;
-            top: 20px;
-            left: 20px;
+        .status-pill {
             background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 10px 15px;
-            border-radius: 8px;
+            padding: 5px 10px;
+            border-radius: 4px;
             font-size: 0.9em;
-        }
-
-        .live-indicator {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #ef4444;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 0.95em;
-            display: none;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .live-indicator.active {
             display: flex;
+<<<<<<< Updated upstream
         }
 
         .live-dot {
@@ -289,384 +372,230 @@
         .quality-options {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+=======
+>>>>>>> Stashed changes
             gap: 10px;
         }
 
-        .quality-btn {
-            padding: 10px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s;
+        .live-tag {
+            background: var(--red-live);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 2px;
+            font-weight: 700;
+            display: none;
+            /* hidden by default */
+        }
+
+        .live-tag.active {
+            display: block;
+        }
+
+        .stats-bar {
+            background: var(--bg-alt);
+            height: 60px;
+            border-top: 1px solid black;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 20px;
+        }
+
+        .stat-item {
             text-align: center;
         }
 
-        .quality-btn:hover {
-            border-color: #6366f1;
-            background: #f0f9ff;
-        }
-
-        .quality-btn.active {
-            border-color: #6366f1;
-            background: #6366f1;
-            color: white;
-        }
-
-        .quality-label {
-            font-weight: 700;
-            font-size: 1.1em;
-            margin-bottom: 3px;
-        }
-
-        .quality-desc {
-            font-size: 0.8em;
-            opacity: 0.7;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            border-left: 4px solid #6366f1;
-        }
-
-        .stat-card h4 {
-            color: #6b7280;
-            font-size: 0.85em;
-            font-weight: 600;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-        }
-
         .stat-value {
-            font-size: 2em;
-            font-weight: 700;
-            color: #1f2937;
-        }
-
-        .stat-change {
-            font-size: 0.85em;
-            margin-top: 5px;
-        }
-
-        .stat-change.positive {
-            color: #10b981;
-        }
-
-        .stat-change.negative {
-            color: #ef4444;
-        }
-
-        .right-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .panel-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #f3f4f6;
-        }
-
-        .panel-title {
-            font-size: 1.1em;
-            font-weight: 700;
-            color: #1f2937;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .panel-badge {
-            background: #6366f1;
-            color: white;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.8em;
-            font-weight: 600;
-        }
-
-        .viewers-list {
-            max-height: 250px;
-            overflow-y: auto;
-        }
-
-        .viewer-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            background: #f9fafb;
-            transition: all 0.3s;
-        }
-
-        .viewer-item:hover {
-            background: #f0f9ff;
-        }
-
-        .viewer-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
             font-size: 1.2em;
-            color: white;
+            font-weight: 700;
         }
 
-        .viewer-info {
-            flex: 1;
+        .stat-label {
+            font-size: 0.75em;
+            color: var(--text-alt);
+            text-transform: uppercase;
         }
 
-        .viewer-name {
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 2px;
-        }
-
-        .viewer-time {
-            font-size: 0.8em;
-            color: #6b7280;
-        }
-
-        .viewer-status {
-            width: 8px;
-            height: 8px;
-            background: #10b981;
-            border-radius: 50%;
-        }
-
+        /* --- Chat --- */
         .chat-container {
             flex: 1;
             display: flex;
             flex-direction: column;
-            max-height: 400px;
+            overflow: hidden;
         }
 
         .chat-messages {
             flex: 1;
             overflow-y: auto;
             padding: 10px;
-            background: #f9fafb;
-            border-radius: 8px;
-            margin-bottom: 12px;
+            font-size: 0.9em;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
         }
 
         .chat-message {
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            background: white;
-            border-left: 3px solid #6366f1;
+            word-wrap: break-word;
         }
 
-        .message-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-        }
-
-        .message-sender {
+        .chat-message .sender {
+            color: var(--twitch-purple);
             font-weight: 700;
-            color: #6366f1;
+            margin-right: 5px;
         }
 
-        .message-time {
-            font-size: 0.75em;
-            color: #9ca3af;
+        .chat-input-wrapper {
+            padding: 15px;
+            background: var(--bg-alt);
+            border-top: 1px solid var(--border-color);
         }
 
-        .message-content {
-            color: #374151;
-            line-height: 1.4;
-        }
-
-        .chat-input-area {
-            display: flex;
-            gap: 8px;
-        }
-
-        .chat-input {
-            flex: 1;
-            padding: 10px 15px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-
-        .chat-input:focus {
-            outline: none;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-
-        .reactions-panel {
-            max-height: 300px;
-        }
-
+        /* --- Reactions --- */
         .reactions-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-bottom: 15px;
+            gap: 5px;
+            padding: 10px;
+            background: var(--bg-alt);
+            border-top: 1px solid var(--border-color);
         }
 
         .reaction-btn {
-            aspect-ratio: 1;
-            background: #f9fafb;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            font-size: 2em;
+            background: transparent;
+            border: 1px solid transparent;
+            font-size: 1.5em;
             cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border-radius: 4px;
         }
 
         .reaction-btn:hover {
-            transform: scale(1.1);
-            border-color: #6366f1;
-            background: #f0f9ff;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            background: var(--bg-hover);
         }
 
-        .reaction-btn:active {
-            transform: scale(0.95);
+        #reaction-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
         }
 
-        .reaction-stats {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+        .floating-reaction {
+            position: absolute;
+            bottom: 20px;
+            font-size: 2.5em;
+            animation: floatUp 3s ease-out forwards;
         }
 
-        .reaction-stat-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px;
-            background: #f9fafb;
-            border-radius: 8px;
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) scale(0.5);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+                transform: translateY(-50px) scale(1.2);
+            }
+
+            100% {
+                transform: translateY(-400px) scale(1);
+                opacity: 0;
+            }
         }
 
-        .reaction-emoji {
-            font-size: 1.5em;
-        }
-
-        .reaction-count {
-            font-weight: 700;
-            color: #6366f1;
-            font-size: 1.1em;
-        }
-
-        .notifications-panel {
-            max-height: 250px;
-        }
-
-        .notifications-list {
-            overflow-y: auto;
-            max-height: 200px;
-        }
-
-        .notification-item {
-            padding: 12px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            border-left: 3px solid #10b981;
-            background: #f0fdf4;
-            font-size: 0.9em;
-        }
-
-        .notification-item.warning {
-            border-left-color: #f59e0b;
-            background: #fffbeb;
-        }
-
-        .notification-item.error {
-            border-left-color: #ef4444;
-            background: #fef2f2;
-        }
-
-        .notification-time {
-            color: #6b7280;
-            font-size: 0.85em;
-            margin-top: 4px;
-        }
-
-        @media (max-width: 1200px) {
+        /* Mobile */
+        @media (max-width: 1024px) {
             .main-layout {
                 grid-template-columns: 1fr;
             }
 
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .quality-options {
-                grid-template-columns: repeat(2, 1fr);
+            .panel {
+                height: auto;
+                border: none;
+                border-bottom: 1px solid black;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <div class="header-left">
-                <h1>🎥 Streamer Dashboard</h1>
-                <p>Quản lý phát sóng trực tiếp chuyên nghiệp</p>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="live-streams.html" class="nav-logo">
+            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="g1" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#00C7FD" />
+                        <stop offset="100%" stop-color="#9146FF" />
+                    </linearGradient>
+                </defs>
+                <path
+                    d="M33.5 17.4C35.5 18.55 35.5 21.45 33.5 22.6L13.5 34.15C11.5 35.3 9 33.85 9 31.55V8.45C9 6.15 11.5 4.7 13.5 5.85L33.5 17.4Z"
+                    fill="url(#g1)" />
+            </svg>
+            <span>StreamG8</span>
+        </a>
+
+        <div class="nav-status">
+            <div id="connection-status" class="connection-badge badge-disconnected">Offline</div>
+            <div class="user-menu">
+                <div class="user-avatar-small">S</div>
+                <span id="user-name" style="font-weight: 600; font-size: 0.9em;">Streamer</span>
             </div>
-            <div class="header-right">
-                <div class="connection-badge badge-disconnected" id="connection-status">
-                    <span>⚫</span>
-                    <span>Chưa kết nối</span>
+        </div>
+    </nav>
+
+    <!-- Layout -->
+    <div class="main-layout">
+
+        <!-- Left Panel: Controls -->
+        <div class="panel">
+            <div class="panel-header">Thiết lập Stream</div>
+            <div class="panel-content">
+
+                <div class="form-group">
+                    <label>Thông tin</label>
+                    <input type="text" id="streamer-name" placeholder="Tên hiển thị" value="Streamer">
+                    <input type="text" id="stream-title" placeholder="Tiêu đề Stream">
                 </div>
-                <div class="user-info">
-                    <div class="user-avatar">🎤</div>
-                    <span id="user-name">Streamer</span>
+
+                <div class="form-group">
+                    <label>Nguồn phát</label>
+                    <select id="stream-source" onchange="handleSourceChange()">
+                        <option value="camera">📹 Camera / Màn hình</option>
+                        <option value="file">📁 Upload File Video</option>
+                    </select>
                 </div>
+
+                <div class="form-group" id="file-input-group" style="display:none;">
+                    <label>Chọn Video</label>
+                    <input type="file" id="video-file-input" accept="video/*">
+                </div>
+
+                <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+                    <button id="btn-start-stream" class="btn btn-primary">▶ Bắt đầu Stream</button>
+                    <button id="btn-stop-stream" class="btn btn-danger" disabled>⬛ Kết thúc Stream</button>
+                </div>
+
+                <div class="form-group" style="margin-top: 20px;">
+                    <label>Điều khiển</label>
+                    <button id="btn-toggle-mic" class="btn btn-secondary">🎤 Mic: ON</button>
+                    <button id="btn-toggle-camera" class="btn btn-secondary">📹 Camera: OFF</button>
+                    <button id="btn-screen-share" class="btn btn-secondary" disabled>🖥️ Chia sẻ màn hình</button>
+                </div>
+
+                <div class="form-group" style="margin-top: 20px;">
+                    <label>Chất lượng</label>
+                    <div style="display: flex; gap: 5px;">
+                        <button class="quality-btn btn btn-secondary" data-quality="auto">Auto</button>
+                        <button class="quality-btn btn btn-secondary" data-quality="1080p">1080p</button>
+                        <button class="quality-btn btn btn-secondary" data-quality="144p">Low</button>
+                    </div>
+                </div>
+
             </div>
         </div>
 
+<<<<<<< Updated upstream
         <!-- Main Layout -->
         <div class="main-layout">
             <!-- Left Panel -->
@@ -759,100 +688,109 @@
                         <h4>⏱️ Duration</h4>
                         <div class="stat-value" id="stat-total-duration">00:00:00</div>
                         <div class="stat-change">🔴 Live</div>
+=======
+        <!-- Center: Video -->
+        <div class="video-wrapper">
+            <div class="video-container">
+                <video id="main-video" autoplay playsinline muted></video>
+                <div id="reaction-overlay"></div>
+
+                <div class="stream-overlay-top">
+                    <!-- Status -->
+                    <div class="status-pill">
+                        <div id="live-indicator" class="live-tag">LIVE</div>
+                        <span id="stream-duration">00:00</span>
+                    </div>
+                    <!-- Viewers -->
+                    <div class="status-pill">
+                        👁️ <span id="stream-viewers">0</span>
+>>>>>>> Stashed changes
                     </div>
                 </div>
             </div>
 
-            <!-- Right Panel -->
-            <div class="right-panel">
-                <!-- Viewers List -->
-                <div class="panel-card">
-                    <div class="panel-header">
-                        <div class="panel-title">
-                            👥 Viewers
-                        </div>
-                        <div class="panel-badge" id="viewers-count">0</div>
-                    </div>
-                    <div class="viewers-list" id="viewers-list">
-                        <p style="text-align: center; color: #9ca3af; padding: 20px;">
-                            Chưa có viewer nào đang xem
-                        </p>
-                    </div>
+            <!-- Stats Bar -->
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-current-viewers">0</div>
+                    <div class="stat-label">Người xem</div>
+                </div>
+                <!-- Hidden helper stats to satisfy JS logic -->
+                <span id="stat-peak-viewers" style="display:none;">0</span>
+
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-messages">0</div>
+                    <div class="stat-label">Tin nhắn</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-reactions">0</div>
+                    <div class="stat-label">Cảm xúc</div>
                 </div>
 
-                <!-- Live Chat -->
-                <div class="panel-card">
-                    <div class="panel-header">
-                        <div class="panel-title">
-                            💬 Live Chat
-                        </div>
-                        <div class="panel-badge" id="chat-count">0</div>
-                    </div>
-                    <div class="chat-container">
-                        <div class="chat-messages" id="chat-messages">
-                            <div class="chat-message">
-                                <div class="message-header">
-                                    <span class="message-sender">System</span>
-                                    <span class="message-time">Now</span>
-                                </div>
-                                <div class="message-content">Chào mừng đến với phòng stream! 🎉</div>
-                            </div>
-                        </div>
-                        <div class="chat-input-area">
-                            <input type="text" class="chat-input" id="chat-input" placeholder="Nhập tin nhắn...">
-                            <button class="btn btn-primary" id="btn-send-chat">📤</button>
-                        </div>
-                    </div>
-                </div>
+                <span id="stat-messages-rate" style="display:none;">0</span>
+                <span id="stat-reactions-rate" style="display:none;">0</span>
+                <span id="stat-total-duration" style="display:none;">0</span>
+            </div>
+        </div>
 
-                <!-- Reactions -->
-                <div class="panel-card reactions-panel">
-                    <div class="panel-header">
-                        <div class="panel-title">
-                            ❤️ Reactions
-                        </div>
-                    </div>
-                    <div class="reactions-grid">
-                        <button class="reaction-btn" data-reaction="like">👍</button>
-                        <button class="reaction-btn" data-reaction="heart">❤️</button>
-                        <button class="reaction-btn" data-reaction="wow">😮</button>
-                        <button class="reaction-btn" data-reaction="laugh">😂</button>
-                        <button class="reaction-btn" data-reaction="sad">😢</button>
-                        <button class="reaction-btn" data-reaction="fire">🔥</button>
-                        <button class="reaction-btn" data-reaction="clap">👏</button>
-                        <button class="reaction-btn" data-reaction="party">🎉</button>
-                    </div>
-                    <div class="reaction-stats" id="reaction-stats">
-                        <!-- Will be populated dynamically -->
-                    </div>
-                </div>
+        <!-- Right Panel: Social -->
+        <div class="panel">
+            <div class="panel-header">Tương tác</div>
 
-                <!-- Notifications -->
-                <div class="panel-card notifications-panel">
-                    <div class="panel-header">
-                        <div class="panel-title">
-                            🔔 Notifications
-                        </div>
-                    </div>
-                    <div class="notifications-list" id="notifications-list">
-                        <div class="notification-item">
-                            <div>✅ System ready</div>
-                            <div class="notification-time">Just now</div>
-                        </div>
+            <div class="chat-container">
+                <div class="chat-messages" id="chat-messages">
+                    <div class="chat-message" style="color: var(--text-alt); text-align: center; font-style: italic;">
+                        Hệ thống sẵn sàng...
                     </div>
                 </div>
             </div>
+
+            <div class="chat-input-wrapper">
+                <input type="text" id="chat-input" placeholder="Gửi tin nhắn..." style="width: 100%;">
+                <button id="btn-send-chat" style="display:none;">Send</button> <!-- Hidden triggers on enter -->
+            </div>
+
+            <!-- Quick Reactions -->
+            <div class="reactions-grid">
+                <button class="reaction-btn" data-reaction="heart">❤️</button>
+                <button class="reaction-btn" data-reaction="laugh">😂</button>
+                <button class="reaction-btn" data-reaction="wow">😮</button>
+                <button class="reaction-btn" data-reaction="fire">🔥</button>
+                <button class="reaction-btn" data-reaction="clap">👏</button>
+                <button class="reaction-btn" data-reaction="like">👍</button>
+                <button class="reaction-btn" data-reaction="sad">😢</button>
+                <button class="reaction-btn" data-reaction="party">🎉</button>
+            </div>
+
+            <!-- Hidden containers for JS compatibility -->
+            <div id="viewers-list" style="display:none;"></div>
+            <div id="viewers-count" style="display:none;"></div>
+            <div id="chat-count" style="display:none;"></div>
+            <div id="reaction-stats" style="display:none;"></div>
+            <div id="notifications-list" style="display:none;"></div>
+
         </div>
     </div>
 
+    <!-- ORIGINAL JAVASCRIPT Logic -->
     <script>
-        // Configuration
-        const API_URL = 'http://localhost:7880/api/streaming';
-        const WS_URL = 'ws://localhost:7880/api/streaming';
-        const LIVEKIT_URL = 'ws://localhost:7880';
-        const ROOM_NAME = 'advanced-stream-' + Date.now();
-        const USER_ID = 'streamer-' + Math.random().toString(36).substr(2, 9);
-        const currentRoomId = ROOM_NAME; // Stream ID for directory
+        // Configuration - Dynamic with File Protocol Support
+        let API_URL = 'http://localhost:7880/api/streaming';
+        let WS_URL = 'ws://localhost:7880/api/streaming';
+        let LIVEKIT_URL = 'ws://localhost:7880';
+
+        if (window.location.protocol !== 'file:') {
+            const PROTOCOL = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const HOST = window.location.host;
+            API_URL = '/api/streaming';
+            WS_URL = `${PROTOCOL}//${HOST}/api/streaming`;
+            LIVEKIT_URL = `${PROTOCOL}//${HOST}`;
+        }
+
+        let ROOM_NAME = 'advanced-stream-' + Date.now();
+        let USER_ID = 'streamer-' + Math.random().toString(36).substr(2, 9);
+        let USER_DISPLAY_NAME = 'Streamer';
+        let currentRoomId = ROOM_NAME; // Stream ID for directory
 
         // State
         let isStreaming = false;
@@ -894,11 +832,50 @@
             
             setupEventListeners();
             updateUIState();
+<<<<<<< Updated upstream
             document.getElementById('user-name').textContent = USER_ID.substring(0, 15);
             
+=======
+
+>>>>>>> Stashed changes
             // Set default values
-            document.getElementById('streamer-name').value = 'Streamer ' + USER_ID.substring(0, 8);
+            // Check for logged in user - Priority: URL Params > LocalStorage > Default
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlName = urlParams.get('name');
+            const urlEmail = urlParams.get('email');
+
+            // If present in URL, save to storage (sync across tabs/file-protocol)
+            if (urlName) {
+                localStorage.setItem('user_name', urlName);
+                if (urlEmail) localStorage.setItem('user_email', urlEmail);
+            }
+
+            const storedName = urlName || localStorage.getItem('user_name');
+            const storedEmail = urlEmail || localStorage.getItem('user_email');
+
+            if (storedName) {
+                // Use stored identity
+                USER_DISPLAY_NAME = storedName;
+                document.getElementById('streamer-name').value = storedName;
+                document.getElementById('user-name').textContent = storedName;
+
+                // Optional: Make ID consistent based on email if available
+                if (storedEmail) {
+                    USER_ID = 'streamer-' + storedEmail.split('@')[0];
+                }
+            } else {
+                // Default random identity
+                const defaultName = 'Streamer ' + USER_ID.substring(9, 13); // Shorten ID for default name
+                document.getElementById('streamer-name').value = defaultName;
+                document.getElementById('user-name').textContent = defaultName;
+            }
+
             document.getElementById('stream-title').value = 'My Live Stream ' + new Date().toLocaleDateString('vi-VN');
+
+            // Dynamic header update listener
+            document.getElementById('streamer-name').addEventListener('input', (e) => {
+                document.getElementById('user-name').textContent = e.target.value || 'Streamer';
+            });
         });
 
         function setupEventListeners() {
@@ -926,8 +903,8 @@
             });
         }
 
-        // Register stream in localStorage for directory
-        function registerStreamInDirectory() {
+        // Register stream in Server Memory
+        async function registerStreamInDirectory() {
             try {
                 const streamerName = document.getElementById('streamer-name')?.value || 'Anonymous Streamer';
                 const streamTitle = document.getElementById('stream-title')?.value || 'Untitled Stream';
@@ -939,55 +916,47 @@
                     avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(streamerName)}&background=6366f1&color=fff&size=128`,
                     viewers: 0,
                     startTime: Date.now(),
-                    messages: 0,
-                    reactions: {
-                        '👍': 0,
-                        '❤️': 0,
-                        '😂': 0,
-                        '😮': 0,
-                        '🔥': 0,
-                        '🎉': 0
-                    }
+                    // reactions etc aren't stored on server yet, but that's fine for listing
                 };
 
-                // Get existing streams
-                let activeStreams = [];
-                const stored = localStorage.getItem('livekit_active_streams');
-                if (stored) {
-                    activeStreams = JSON.parse(stored);
-                }
+                // Call Server API
+                const response = await fetch(`${API_URL}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(streamData)
+                });
 
-                // Add or update current stream
-                const existingIndex = activeStreams.findIndex(s => s.id === currentRoomId);
-                if (existingIndex >= 0) {
-                    activeStreams[existingIndex] = streamData;
+                if (response.ok) {
+                    console.log('✅ Stream registered on server:', streamData);
                 } else {
-                    activeStreams.push(streamData);
+                    console.error('❌ Failed to register stream on server');
                 }
-
-                // Save back
-                localStorage.setItem('livekit_active_streams', JSON.stringify(activeStreams));
-                console.log('Stream registered in directory:', streamData);
             } catch (error) {
                 console.error('Error registering stream:', error);
             }
         }
 
-        // Unregister stream from localStorage
-        function unregisterStreamFromDirectory() {
+        // Unregister stream from Server Memory
+        async function unregisterStreamFromDirectory() {
             try {
-                const stored = localStorage.getItem('livekit_active_streams');
-                if (stored) {
-                    let activeStreams = JSON.parse(stored);
-                    activeStreams = activeStreams.filter(s => s.id !== currentRoomId);
-                    localStorage.setItem('livekit_active_streams', JSON.stringify(activeStreams));
-                    console.log('Stream unregistered from directory');
+                // Call Server API
+                const response = await fetch(`${API_URL}/unregister`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: currentRoomId })
+                });
+
+                if (response.ok) {
+                    console.log('✅ Stream unregistered from server');
+                } else {
+                    console.error('❌ Failed to unregister stream');
                 }
             } catch (error) {
                 console.error('Error unregistering stream:', error);
             }
         }
 
+<<<<<<< Updated upstream
         async function startStream() {
             try {
                 // Prevent multiple starts
@@ -1005,30 +974,202 @@
                 stats.messages = 0;
                 stats.reactions = 0;
                 stats.peak = 0;
+=======
+        // === Source Handling Globals ===
+        let videoFileElement = null;
+
+        function handleSourceChange() {
+            const source = document.getElementById('stream-source').value;
+            const fileGroup = document.getElementById('file-input-group');
+            if (fileGroup) fileGroup.style.display = source === 'file' ? 'block' : 'none';
+        }
+
+        // === Reusable Setup Functions ===
+
+        async function commonRoomSetup() {
+            livekitRoom.on(LivekitClient.RoomEvent.ParticipantConnected, (participant) => {
+                const count = Array.from(livekitRoom.remoteParticipants.values()).length;
+                stats.viewers = count;
+>>>>>>> Stashed changes
                 updateStats();
 
-                // Step 1: Get access token from server
-                addNotification('🔑 Getting access token...', 'info');
-                const tokenResponse = await fetch(`${API_URL}/token`, {
+                // Parse friendly name
+                // Priority: metadata name > identity cleaned
+                let name = participant.name;
+                if (!name || name === participant.identity) {
+                    // If name missing or same as ID, try to clean ID
+                    name = participant.identity || "Khách";
+                    // Remove session suffix if present (e.g. user-sess-123 -> user)
+                    name = name.replace(/-sess-[a-zA-Z0-9]+$/, '');
+                    // Rename cleaned if still has dashes and looks like it wasn't cleaned properly
+                    if (name.length > 20 && name.includes('-')) name = name.split('-')[0];
+                }
+
+                addSystemMessage(`👋 ${name} đã tham gia stream`);
+            });
+            livekitRoom.on(LivekitClient.RoomEvent.ParticipantDisconnected, (participant) => {
+                const count = Array.from(livekitRoom.remoteParticipants.values()).length;
+                stats.viewers = count;
+                updateStats();
+
+                let name = participant.name;
+                if (!name || name === participant.identity) {
+                    name = participant.identity || "Khách";
+                    name = name.replace(/-sess-[a-zA-Z0-9]+$/, '');
+                    if (name.length > 20 && name.includes('-')) name = name.split('-')[0];
+                }
+                addSystemMessage(`💨 ${name} đã rời đi`);
+            });
+            livekitRoom.on(LivekitClient.RoomEvent.DataReceived, (payload, participant) => {
+                try {
+                    const text = new TextDecoder().decode(payload);
+                    const data = JSON.parse(text);
+                    if (data.type === 'chat') {
+                        const chatMessages = document.getElementById('chat-messages');
+                        if (chatMessages) {
+                            const messageDiv = document.createElement('div');
+                            messageDiv.className = 'chat-message';
+                            messageDiv.innerHTML = `<span class="sender">${participant?.identity || data.sender_name}:</span><span class="content">${data.content}</span>`;
+                            chatMessages.appendChild(messageDiv);
+                        }
+                        stats.messages++;
+                        updateStats();
+                    } else if (data.type === 'reaction') {
+                        showReactionAnimation(data);
+                        stats.reactions++;
+                        updateStats();
+                    }
+                } catch (e) { }
+            });
+
+            // === Setup Room Events ===
+            livekitRoom.on(LivekitClient.RoomEvent.TrackSubscribed, (track, publication, participant) => {
+                console.log('🎥 Track subscribed from:', participant.identity, track.kind);
+            });
+
+            livekitRoom.on(LivekitClient.RoomEvent.Disconnected, () => {
+                console.log('Disconnected from room');
+                isStreaming = false;
+                updateUIState();
+            });
+        }
+
+        async function setupLiveKitAndPublish(videoStream, audioStream) {
+            addNotification('🔗 Connecting to LiveKit...', 'info');
+
+            livekitRoom = new LivekitClient.Room({
+                adaptiveStream: true,
+                dynacast: true,
+                publishDefaults: {
+                    simulcast: true,
+                    videoCodec: 'vp8',
+                    // Config for CAMERA/FILE
+                    videoSimulcastLayers: [
+                        { width: 1920, height: 1080, encoding: { maxBitrate: 3_000_000, maxFramerate: 30 } },
+                        { width: 256, height: 144, encoding: { maxBitrate: 100_000, maxFramerate: 15 } }
+                    ],
+                    // Config for SCREEN SHARE
+                    screenShareSimulcastLayers: [
+                        { width: 1920, height: 1080, encoding: { maxBitrate: 3_000_000, maxFramerate: 30 } },
+                        { width: 256, height: 144, encoding: { maxBitrate: 100_000, maxFramerate: 5 } }
+                    ]
+                }
+            });
+
+            await commonRoomSetup();
+
+            await livekitRoom.connect(LIVEKIT_URL, token);
+            console.log('✅ Connected to LiveKit Room:', livekitRoom.name);
+            addNotification(`🔗 Connected to room: ${livekitRoom.name}`, 'success');
+
+            // Publish Tracks
+            addNotification('📡 Publishing stream...', 'info');
+
+            const videoTrack = videoStream.getVideoTracks()[0];
+            localVideoTrack = new LivekitClient.LocalVideoTrack(videoTrack);
+
+            const source = document.getElementById('stream-source').value;
+            const trackSource = source === 'file' ? LivekitClient.Track.Source.Camera : LivekitClient.Track.Source.ScreenShare;
+
+            await livekitRoom.localParticipant.publishTrack(localVideoTrack, {
+                source: trackSource,
+                simulcast: true
+            });
+
+            const audioTracks = videoStream.getAudioTracks();
+            if (audioTracks.length > 0) {
+                const track = new LivekitClient.LocalAudioTrack(audioTracks[0]);
+                await livekitRoom.localParticipant.publishTrack(track, {
+                    source: LivekitClient.Track.Source.ScreenShareAudio
+                });
+            }
+
+            if (audioStream) {
+                const track = audioStream.getAudioTracks()[0];
+                localAudioTrack = new LivekitClient.LocalAudioTrack(track);
+                await livekitRoom.localParticipant.publishTrack(localAudioTrack, {
+                    source: LivekitClient.Track.Source.Microphone
+                });
+            }
+        }
+
+        async function startStream() {
+            if (isStreaming) return;
+
+            const roomNameInput = document.getElementById('stream-title').value;
+            const streamerNameInput = document.getElementById('streamer-name').value;
+            if (!roomNameInput || !streamerNameInput) {
+                addNotification('❌ Please enter stream title and name', 'error');
+                return;
+            }
+
+            USER_DISPLAY_NAME = streamerNameInput;
+            ROOM_NAME = roomNameInput + '-' + Math.floor(Math.random() * 1000);
+            currentRoomId = ROOM_NAME;
+
+            // For OBS Sync
+            if (document.getElementById('stream-source').value === 'obs') {
+                ROOM_NAME = "stream-room"; // Force strictly to match the default instruction
+            }
+
+            // Update UI
+            // Reset stats at start
+            stats.viewers = 0;
+            stats.messages = 0;
+            stats.reactions = 0;
+            updateStats();
+
+            const startBtn = document.getElementById('btn-start-stream') || document.getElementById('btn-start');
+            if (startBtn) {
+                startBtn.disabled = true;
+                startBtn.innerHTML = '⏳ Starting...';
+            }
+
+            try {
+                // Get Token (Generic for all sources)
+                const response = await fetch(`${API_URL}/token`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         room_name: ROOM_NAME,
                         identity: USER_ID,
+                        name: USER_DISPLAY_NAME,
                         is_publisher: true
                     })
                 });
 
-                if (!tokenResponse.ok) {
-                    throw new Error('Failed to get access token');
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Failed to get token: ${response.status} ${errorText}`);
                 }
 
-                const { token, url } = await tokenResponse.json();
+                const data = await response.json();
+                token = data.token;
                 console.log('✅ Got access token');
 
-                // Step 2: Connect WebSockets for chat/reactions
-                connectWebSockets();
+                connectWebSockets(); // Initialize WebSockets
 
+<<<<<<< Updated upstream
                 // Step 3: Get user media (screen + audio)
                 addNotification('🎥 Requesting screen share...', 'info');
                 
@@ -1128,9 +1269,36 @@
                         }
                     } catch (e) {
                         console.error('❌ Error processing data:', e, e.stack);
-                    }
-                });
+=======
+                // Determine Source
+                const source = document.getElementById('stream-source').value;
+                let videoStream;
+                let audioStream;
 
+                if (source === 'file') {
+                    // === FILE MODE ===
+                    const fileInput = document.getElementById('video-file-input');
+                    const file = fileInput.files[0];
+                    if (!file) throw new Error("Vui lòng chọn Video File trước!");
+
+                    // Create hidden video element to play file
+                    if (videoFileElement) videoFileElement.remove();
+                    videoFileElement = document.createElement('video');
+                    videoFileElement.src = URL.createObjectURL(file);
+                    videoFileElement.loop = true;
+                    videoFileElement.muted = false;
+                    videoFileElement.play();
+
+                    if (videoFileElement.captureStream) {
+                        videoStream = videoFileElement.captureStream();
+                    } else if (videoFileElement.mozCaptureStream) {
+                        videoStream = videoFileElement.mozCaptureStream();
+                    } else {
+                        throw new Error("Browser does not support captureStream()");
+>>>>>>> Stashed changes
+                    }
+
+<<<<<<< Updated upstream
                 // Connect to room
                 await livekitRoom.connect(LIVEKIT_URL, token);
                 console.log('✅ Connected to LiveKit room:', ROOM_NAME);
@@ -1184,6 +1352,79 @@
             }
         }
 
+=======
+                    audioStream = null;
+
+                    // Set local preview
+                    document.getElementById('main-video').srcObject = videoStream;
+                    document.getElementById('main-video').muted = true;
+
+                    await setupLiveKitAndPublish(videoStream, audioStream);
+
+                } else {
+                    // === CAMERA / SCREEN MODE (Standard) ===
+                    addNotification('🎥 Requesting media...', 'info');
+
+                    videoStream = await navigator.mediaDevices.getDisplayMedia({
+                        video: { displaySurface: 'monitor', width: { ideal: 1920 }, height: { ideal: 1080 } },
+                        audio: true
+                    });
+
+                    try {
+                        audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                    } catch (e) {
+                        console.warn('Could not get mic:', e);
+                    }
+
+                    const tracks = [...videoStream.getVideoTracks()];
+                    if (audioStream) tracks.push(...audioStream.getAudioTracks());
+                    localStream = new MediaStream(tracks);
+                    document.getElementById('main-video').srcObject = localStream;
+
+                    await setupLiveKitAndPublish(videoStream, audioStream);
+                }
+
+                // Common Success Steps
+                isStreaming = true;
+                const stopBtn = document.getElementById('btn-stop-stream') || document.getElementById('btn-stop');
+                if (stopBtn) stopBtn.disabled = false;
+                if (startBtn) startBtn.style.display = 'none';
+
+                // Register in Directory
+                registerStreamInDirectory();
+
+                // Start Timer
+                streamStartTime = Date.now();
+                startDurationTimer();
+                const indicator = document.getElementById('live-indicator');
+                if (indicator) indicator.classList.add('active');
+
+                // Recording (Optional)
+                if (source !== 'obs') startRecording();
+
+                addNotification('🔴 Stream LIVE!', 'success');
+                updateConnectionStatus('streaming');
+
+                // Update Camera State
+                if (source === 'camera') {
+                    cameraEnabled = true;
+                } else {
+                    cameraEnabled = false;
+                }
+                updateUIState();
+
+            } catch (error) {
+                console.error('Error:', error);
+                addNotification('❌ Error: ' + error.message, 'error');
+                if (startBtn) {
+                    startBtn.disabled = false;
+                    startBtn.innerHTML = '▶️ Start Stream';
+                }
+            }
+        }
+
+        // Renamed to stopStream cleanup logic is mostly same
+>>>>>>> Stashed changes
         function stopStream() {
             console.log('🛑 Stopping stream... Current viewers:', stats.viewers);
             
@@ -1194,7 +1435,19 @@
                 localStream = null;
             }
 
+<<<<<<< Updated upstream
             // Disconnect LiveKit and cleanup
+=======
+            // Cleanup File Source
+            if (videoFileElement) {
+                videoFileElement.pause();
+                videoFileElement.src = "";
+                videoFileElement.remove();
+                videoFileElement = null;
+            }
+
+            // Disconnect LiveKit
+>>>>>>> Stashed changes
             if (livekitRoom) {
                 // Remove all event listeners to prevent duplicate handlers
                 livekitRoom.removeAllListeners();
@@ -1222,14 +1475,28 @@
             updateUIState();
             updateConnectionStatus('disconnected');
             addNotification('⏹️ Stream stopped', 'success');
+
+            // Show Start Button again
+            document.getElementById('btn-start-stream').style.display = 'block';
+            document.getElementById('btn-start-stream').disabled = false;
+            document.getElementById('btn-start-stream').innerHTML = '▶ Bắt đầu Stream';
         }
 
         async function shareScreen() {
+<<<<<<< Updated upstream
+=======
+            if (!isStreaming || !livekitRoom) {
+                addNotification('⚠️ You must start streaming first', 'warning');
+                return;
+            }
+
+>>>>>>> Stashed changes
             try {
                 const screenStream = await navigator.mediaDevices.getDisplayMedia({
                     video: { displaySurface: 'monitor' }
                 });
 
+<<<<<<< Updated upstream
                 const videoTrack = screenStream.getVideoTracks()[0];
                 
                 if (localStream) {
@@ -1245,9 +1512,47 @@
                 }
 
                 addNotification('🖥️ Screen sharing started', 'success');
+=======
+                // Replace track in LiveKit
+                if (localVideoTrack) {
+                    await livekitRoom.localParticipant.unpublishTrack(localVideoTrack);
+                    localVideoTrack.stop();
+                    localVideoTrack = new LivekitClient.LocalVideoTrack(newVideoTrack);
+                    await livekitRoom.localParticipant.publishTrack(localVideoTrack, {
+                        source: LivekitClient.Track.Source.ScreenShare,
+                        simulcast: true
+                    });
+                }
+
+                if (localStream) {
+                    localStream.getVideoTracks().forEach(t => {
+                        localStream.removeTrack(t);
+                        t.stop();
+                    });
+                    localStream.addTrack(newVideoTrack);
+                }
+
+                newVideoTrack.onended = () => {
+                    addNotification('⏹️ Screen sharing ended by user', 'warning');
+                };
+
+                addNotification('🖥️ Switched to Screen Share', 'success');
+>>>>>>> Stashed changes
             } catch (error) {
                 console.error('Error sharing screen:', error);
                 addNotification('❌ Failed to share screen', 'error');
+            }
+        }
+
+        function connectWebSockets() {
+            try {
+                chatWebSocket = new WebSocket(WS_URL);
+                chatWebSocket.onopen = () => console.log('✅ Chat WebSocket Connected');
+
+                reactionsWebSocket = new WebSocket(WS_URL);
+                reactionsWebSocket.onopen = () => console.log('✅ Reactions WebSocket Connected');
+            } catch (e) {
+                console.warn("WebSocket init failed:", e);
             }
         }
 
@@ -1268,6 +1573,7 @@
 
             try {
                 if (cameraEnabled) {
+<<<<<<< Updated upstream
                     // Turn off camera
                     if (localStream) {
                         localStream.getVideoTracks().forEach(track => {
@@ -1275,6 +1581,57 @@
                                 track.stop();
                             }
                         });
+=======
+                    // Turn OFF Camera
+                    if (localVideoTrack) {
+                        // Check if it's actually a camera track or screen share?
+                        // If source is camera, we mute/stop it.
+                        if (localVideoTrack.source === LivekitClient.Track.Source.Camera) {
+                            await localVideoTrack.mute();
+                            // Optional: stop track to release hardware light, but mute is faster toggle
+                        } else {
+                            // It is screen share? Then we just stop tracking it as "Camera Enabled"
+                        }
+                    }
+                    cameraEnabled = false;
+                    addNotification('📷 Camera OFF', 'success');
+                } else {
+                    // Turn ON Camera
+                    // 1. If we have a muted camera track, just unmute
+                    if (localVideoTrack && localVideoTrack.source === LivekitClient.Track.Source.Camera) {
+                        await localVideoTrack.unmute();
+                        cameraEnabled = true;
+                        addNotification('📷 Camera ON (Unmuted)', 'success');
+                    } else {
+                        // 2. We don't have a camera track (was screen share, or never started) -> Create New
+                        addNotification('📷 Starting Camera...', 'info');
+
+                        // Stop existing video track if it's e.g. screen share
+                        if (localVideoTrack) {
+                            await livekitRoom.localParticipant.unpublishTrack(localVideoTrack);
+                            localVideoTrack.stop();
+                        }
+
+                        const cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                        const newVideoTrack = cameraStream.getVideoTracks()[0];
+
+                        localVideoTrack = new LivekitClient.LocalVideoTrack(newVideoTrack);
+                        await livekitRoom.localParticipant.publishTrack(localVideoTrack, {
+                            source: LivekitClient.Track.Source.Camera,
+                            simulcast: true
+                        });
+
+                        // Update Preview
+                        if (localStream) {
+                            localStream.getVideoTracks().forEach(t => t.stop());
+                            localStream = new MediaStream([newVideoTrack]);
+                            if (localAudioTrack) localStream.addTrack(localAudioTrack.mediaStreamTrack);
+                            document.getElementById('main-video').srcObject = localStream;
+                        }
+
+                        cameraEnabled = true;
+                        addNotification('📷 Camera ON', 'success');
+>>>>>>> Stashed changes
                     }
                     cameraEnabled = false;
                     addNotification('📹 Camera disabled', 'success');
@@ -1292,17 +1649,23 @@
                 updateUIState();
             } catch (error) {
                 console.error('Error toggling camera:', error);
-                addNotification('❌ Failed to toggle camera', 'error');
+                addNotification('❌ Failed to toggle camera: ' + error.message, 'error');
             }
         }
 
-        function selectQuality(btn) {
+        async function selectQuality(btn) {
             document.querySelectorAll('.quality-btn').forEach(b => b.classList.remove('active'));
+            // Refactored to finding class since I changed button structure slightly? No, keeping class quality-btn
+            // Wait, in my new HTML I used btn-secondary style but kept quality-btn class.
+            // The Original JS adds 'active' class. I need to make sure CSS handles .active
+
+            // Wait, I didn't add .active style for buttons in my new CSS. Let me fix that implicity or rely on the JS adding it and it just working? 
+            // It adds class 'active'. I should add a style for it in the head.
+
             btn.classList.add('active');
             currentQuality = btn.dataset.quality;
-            addNotification(`📊 Quality changed to ${currentQuality}`, 'success');
-        }
 
+<<<<<<< Updated upstream
         function connectWebSockets() {
             try {
                 // Chat WebSocket
@@ -1351,6 +1714,30 @@
             } catch (error) {
                 console.error('Error connecting WebSockets:', error);
                 addNotification('❌ Failed to connect WebSockets', 'error');
+=======
+            addNotification(`📊 Applying quality constraints: ${currentQuality}...`, 'info');
+
+            if (localVideoTrack && localVideoTrack.mediaStreamTrack) {
+                let constraints = {};
+                if (currentQuality === '1080p') {
+                    constraints = { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } };
+                } else if (currentQuality === '144p') {
+                    constraints = { width: { ideal: 256 }, height: { ideal: 144 }, frameRate: { ideal: 15 } };
+                } else {
+                    constraints = { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } };
+                }
+
+                try {
+                    await localVideoTrack.mediaStreamTrack.applyConstraints(constraints);
+                    const settings = localVideoTrack.mediaStreamTrack.getSettings();
+                    console.log('✅ Applied constraints:', settings);
+                    addNotification(`✅ Resolution set to: ${settings.width}x${settings.height}`, 'success');
+                } catch (err) {
+                    console.error('Failed to apply constraints:', err);
+                }
+            } else {
+                addNotification('⚠️ No active video track to configure', 'warning');
+>>>>>>> Stashed changes
             }
         }
 
@@ -1361,19 +1748,22 @@
             if (!content) return;
 
             try {
-                // Send via LiveKit DataChannel instead of HTTP API
                 if (livekitRoom && livekitRoom.state === 'connected') {
+<<<<<<< Updated upstream
                     console.log('📤 Sending chat via LiveKit DataChannel...');
                     
+=======
+>>>>>>> Stashed changes
                     const message = {
                         type: 'chat',
-                        sender_name: 'Streamer', // Display name
+                        sender_name: USER_DISPLAY_NAME,
                         content: content,
                         timestamp: new Date().toISOString()
                     };
 
                     const encoder = new TextEncoder();
                     const data = encoder.encode(JSON.stringify(message));
+<<<<<<< Updated upstream
                     
                     // Send to all participants via DataChannel
                     await livekitRoom.localParticipant.publishData(data, { reliable: true });
@@ -1383,29 +1773,34 @@
                     input.value = '';
                     
                     // Add to local chat immediately
+=======
+                    await livekitRoom.localParticipant.publishData(data, { reliable: true });
+
+                    input.value = '';
+>>>>>>> Stashed changes
                     addChatMessage(message);
                     stats.messages++;
                     updateStats();
                     
                 } else {
-                    console.warn('⚠️ LiveKit room not connected. Cannot send chat.');
                     addNotification('❌ Not connected to room', 'error');
                 }
             } catch (error) {
                 console.error('Error sending message:', error);
-                addNotification('❌ Failed to send message', 'error');
             }
         }
 
         async function sendReaction(type) {
             try {
-                // Send via LiveKit DataChannel instead of HTTP API
                 if (livekitRoom && livekitRoom.state === 'connected') {
+<<<<<<< Updated upstream
                     console.log('📤 Sending reaction via LiveKit DataChannel:', type);
                     
+=======
+>>>>>>> Stashed changes
                     const reaction = {
                         type: 'reaction',
-                        user_name: 'Streamer',
+                        user_name: USER_DISPLAY_NAME,
                         reaction_type: type,
                         x: Math.random() * 0.8 + 0.1,
                         y: 0.8,
@@ -1414,6 +1809,7 @@
 
                     const encoder = new TextEncoder();
                     const data = encoder.encode(JSON.stringify(reaction));
+<<<<<<< Updated upstream
                     
                     // Send to all participants via DataChannel
                     await livekitRoom.localParticipant.publishData(data, { reliable: false });
@@ -1427,6 +1823,14 @@
                     
                 } else {
                     console.warn('⚠️ LiveKit room not connected. Cannot send reaction.');
+=======
+                    await livekitRoom.localParticipant.publishData(data, { reliable: false });
+
+                    showReactionAnimation(reaction);
+                    stats.reactions++;
+                    updateStats();
+
+>>>>>>> Stashed changes
                 }
             } catch (error) {
                 console.error('Error sending reaction:', error);
@@ -1437,6 +1841,7 @@
             const container = document.getElementById('chat-messages');
             const messageDiv = document.createElement('div');
             messageDiv.className = 'chat-message';
+<<<<<<< Updated upstream
             
             const time = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
             
@@ -1451,21 +1856,45 @@
             container.appendChild(messageDiv);
             container.scrollTop = container.scrollHeight;
             
+=======
+            messageDiv.innerHTML = `<span class="sender">${message.sender_name || 'User'}:</span><span class="content">${message.content}</span>`;
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+>>>>>>> Stashed changes
             document.getElementById('chat-count').textContent = stats.messages;
+        }
+
+        function addSystemMessage(text) {
+            const container = document.getElementById('chat-messages');
+
+            const div = document.createElement('div');
+            div.style.color = '#adadb8'; // --text-alt
+            div.style.fontSize = '0.8em';
+            div.style.textAlign = 'center';
+            div.style.margin = '8px 0';
+            div.style.fontStyle = 'italic';
+            div.innerHTML = text;
+
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
         }
 
         function showReactionAnimation(reaction) {
             const overlay = document.getElementById('reaction-overlay');
             const emoji = document.createElement('div');
             emoji.className = 'floating-reaction';
+<<<<<<< Updated upstream
             
             // Get reaction type - try reaction_type first, then type (but not if type='reaction')
             const reactionType = reaction.reaction_type || (reaction.type !== 'reaction' ? reaction.type : null);
             emoji.textContent = getReactionEmoji(reactionType);
             
+=======
+            const reactionType = reaction.reaction_type || (reaction.type !== 'reaction' ? reaction.type : null);
+            emoji.textContent = getReactionEmoji(reactionType);
+>>>>>>> Stashed changes
             emoji.style.left = (reaction.x ? reaction.x * 100 : Math.random() * 90) + '%';
-            emoji.style.bottom = '0';
-
+            emoji.style.bottom = '0'; // force bottom start
             overlay.appendChild(emoji);
             setTimeout(() => emoji.remove(), 3000);
         }
@@ -1479,21 +1908,12 @@
         }
 
         function updateReactionStats() {
-            const container = document.getElementById('reaction-stats');
-            container.innerHTML = '';
-
-            Object.entries(reactionCounts).slice(0, 8).forEach(([type, count]) => {
-                const item = document.createElement('div');
-                item.className = 'reaction-stat-item';
-                item.innerHTML = `
-                    <span class="reaction-emoji">${getReactionEmoji(type)}</span>
-                    <span class="reaction-count">${count}</span>
-                `;
-                container.appendChild(item);
-            });
+            // Placeholder for new UI - we don't have a dedicated reaction stat container visible anymore to save space
+            // But we keep the function to prevent errors
         }
 
         function addNotification(message, type = 'success') {
+<<<<<<< Updated upstream
             const container = document.getElementById('notifications-list');
             const notification = document.createElement('div');
             notification.className = `notification-item ${type === 'error' ? 'error' : type === 'warning' ? 'warning' : ''}`;
@@ -1511,45 +1931,67 @@
             while (container.children.length > 10) {
                 container.removeChild(container.lastChild);
             }
+=======
+            // Basic alert for now or console, detailed notification list is hidden in new UI to simplify
+            console.log(`[${type.toUpperCase()}] ${message}`);
+>>>>>>> Stashed changes
         }
 
         function updateStats() {
             document.getElementById('stat-current-viewers').textContent = stats.viewers;
-            document.getElementById('stat-peak-viewers').textContent = stats.peak;
             document.getElementById('stat-messages').textContent = stats.messages;
             document.getElementById('stat-reactions').textContent = stats.reactions;
-            document.getElementById('stat-messages-rate').textContent = stats.messagesLastMinute;
-            document.getElementById('stat-reactions-rate').textContent = stats.reactionsLastMinute;
-            document.getElementById('stream-viewers').textContent = stats.viewers;
-            document.getElementById('viewers-count').textContent = stats.viewers;
+
+            // Sync multiple ID targets if they exist
+            if (document.getElementById('stream-viewers')) document.getElementById('stream-viewers').textContent = stats.viewers;
+            if (document.getElementById('viewers-count')) document.getElementById('viewers-count').textContent = stats.viewers;
         }
 
         function updateUIState() {
             document.getElementById('btn-start-stream').disabled = isStreaming;
             document.getElementById('btn-stop-stream').disabled = !isStreaming;
+<<<<<<< Updated upstream
             document.getElementById('btn-screen-share').disabled = !isStreaming;
             
             const micBtn = document.getElementById('btn-toggle-mic');
             micBtn.textContent = micEnabled ? '🎤 Mic: ON' : '🔇 Mic: OFF';
             micBtn.className = micEnabled ? 'btn btn-primary' : 'btn btn-secondary';
             
+=======
+            document.getElementById('btn-screen-share').disabled = isStreaming ? false : true;
+            // Note: Screen share usually enabled only during stream in this logic, kept original logic but fixed "disabled" state inversion logic error if existed
+
+            const micBtn = document.getElementById('btn-toggle-mic');
+            micBtn.textContent = micEnabled ? '🎤 Mic: ON' : '🔇 Mic: OFF';
+            if (!micEnabled) micBtn.classList.add('btn-danger'); else micBtn.classList.remove('btn-danger');
+
+>>>>>>> Stashed changes
             const camBtn = document.getElementById('btn-toggle-camera');
             camBtn.textContent = cameraEnabled ? '📹 Camera: ON' : '📹 Camera: OFF';
-            camBtn.className = cameraEnabled ? 'btn btn-primary' : 'btn btn-secondary';
+            if (cameraEnabled) {
+                camBtn.classList.add('btn-primary');
+                camBtn.classList.remove('btn-secondary');
+            } else {
+                camBtn.classList.add('btn-secondary');
+                camBtn.classList.remove('btn-primary');
+            }
         }
 
         function updateConnectionStatus(status) {
             const badge = document.getElementById('connection-status');
+<<<<<<< Updated upstream
             
+=======
+>>>>>>> Stashed changes
             if (status === 'streaming') {
                 badge.className = 'connection-badge badge-streaming';
-                badge.innerHTML = '<span>🔴</span><span>Đang phát sóng</span>';
+                badge.textContent = 'Trực tiếp';
             } else if (status === 'connected') {
                 badge.className = 'connection-badge badge-connected';
-                badge.innerHTML = '<span>🟢</span><span>Đã kết nối</span>';
+                badge.textContent = 'Đã kết nối';
             } else {
                 badge.className = 'connection-badge badge-disconnected';
-                badge.innerHTML = '<span>⚫</span><span>Chưa kết nối</span>';
+                badge.textContent = 'Offline';
             }
         }
 
@@ -1557,13 +1999,17 @@
             durationInterval = setInterval(() => {
                 if (streamStartTime) {
                     const duration = Math.floor((Date.now() - streamStartTime) / 1000);
-                    const hours = Math.floor(duration / 3600);
-                    const minutes = Math.floor((duration % 3600) / 60);
+                    const minutes = Math.floor(duration / 60);
                     const seconds = duration % 60;
+<<<<<<< Updated upstream
                     
                     const formatted = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
                     document.getElementById('stat-total-duration').textContent = formatted;
                     document.getElementById('stream-duration').textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+=======
+                    const formatted = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    document.getElementById('stream-duration').textContent = formatted;
+>>>>>>> Stashed changes
                 }
             }, 1000);
         }

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>OBS Monitor Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
+    <style>
+        body {
+            background: #000;
+            color: #fff;
+            font-family: sans-serif;
+            text-align: center;
+        }
+
+        video {
+            width: 80%;
+            border: 2px solid cyan;
+            margin-top: 20px;
+        }
+
+        #status {
+            font-size: 20px;
+            margin: 10px;
+            color: yellow;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>OBS Monitor Debugger</h1>
+    <div id="status">Connecting...</div>
+    <video id="remote-video" autoplay playsinline controls></video>
+    <div id="logs" style="text-align:left; padding:20px; font-family:monospace; color:#0f0;"></div>
+
+    <script>
+        const API_URL = '/api/streaming'; // Dựa vào backend của bạn
+        const ROOM_NAME = 'stream-room';  // Tên phòng cứng của OBS
+
+        function log(msg) {
+            document.getElementById('logs').innerHTML += `<div>${msg}</div>`;
+            console.log(msg);
+        }
+
+        async function start() {
+            try {
+                // 1. Get Token
+                log('🔄 Getting Token for room: ' + ROOM_NAME);
+                const resp = await fetch(`${API_URL}/token`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ room_name: ROOM_NAME, identity: 'monitor-' + Date.now(), name: 'Monitor' })
+                });
+                const data = await resp.json();
+                const token = data.token || data;
+
+                // 2. Connect LiveKit
+                const room = new LivekitClient.Room();
+
+                // Event: Track Subscribed (SỰ KIỆN QUAN TRỌNG NHẤT)
+                room.on(LivekitClient.RoomEvent.TrackSubscribed, (track, pub, participant) => {
+                    log(`🎥 TRACK RECEIVED: ${track.kind} from ${participant.identity}`);
+                    if (track.kind === 'video') {
+                        const v = document.getElementById('remote-video');
+                        track.attach(v);
+                        document.getElementById('status').innerText = "STREAMING: " + participant.identity;
+                        document.getElementById('status').style.color = "#0f0";
+                    }
+                });
+
+                // Cập nhật LiveKit URL theo đúng cấu hình của bạn
+                const WS_URL = 'ws://localhost:7880';
+
+                log('🔌 Connecting to: ' + WS_URL);
+                await room.connect(WS_URL, token);
+                log('✅ Connected! Waiting for OBS...');
+
+                // Quét thủ công ngay khi vào (cho chắc ăn)
+                room.remoteParticipants.forEach(p => {
+                    log(`👤 Found Existing Participant: ${p.identity}`);
+                    Array.from(p.trackPublications.values()).forEach(pub => {
+                        log(`   - Track: ${pub.kind} (Subscribed: ${pub.isSubscribed})`);
+                        if (pub.track && pub.kind === 'video') {
+                            const v = document.getElementById('remote-video');
+                            pub.track.attach(v);
+                            log('🎥 Attached existing video');
+                        }
+                    });
+                });
+
+            } catch (e) {
+                log('❌ ERROR: ' + e.message);
+            }
+        }
+
+        start();
+    </script>
+</body>
+
+</html>

@@ -647,8 +647,31 @@ func (s *StreamingAPIService) handlePublishRecording(w http.ResponseWriter, r *h
 }
 
 func (s *StreamingAPIService) handleListRecordings(w http.ResponseWriter, r *http.Request) {
+<<<<<<< Updated upstream
 	// Implementation
 	http.Error(w, "Not implemented", http.StatusNotImplemented)
+=======
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	streamerID := r.URL.Query().Get("streamer_id")
+
+	recordings, err := s.vodService.ListRecordingsByStreamer(
+		r.Context(),
+		livekit.ParticipantIdentity(streamerID),
+		50, // default limit
+		0,  // default offset
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(recordings)
+>>>>>>> Stashed changes
 }
 
 func (s *StreamingAPIService) handlePlayRecording(w http.ResponseWriter, r *http.Request) {
