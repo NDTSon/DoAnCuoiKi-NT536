@@ -150,8 +150,11 @@ func NewLivekitServer(conf *config.Config,
 	mux.Handle("/agent", agentService)
 
 	// Register Streaming API handlers
-	streamingAPI := NewStreamingAPIService()
+	streamingAPI := NewStreamingAPIService(egressService)
 	streamingAPI.RegisterHTTPHandlers(mux)
+
+	// Serve VOD recordings
+	mux.Handle("/videos/", http.StripPrefix("/videos/", http.FileServer(http.Dir("data/recordings"))))
 
 	mux.HandleFunc("/", s.defaultHandler)
 

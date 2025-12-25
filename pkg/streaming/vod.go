@@ -16,7 +16,10 @@ package streaming
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -109,10 +112,11 @@ type VODConfig struct {
 func NewVODService(config *VODConfig) *VODService {
 	if config == nil {
 		config = &VODConfig{
-			StoragePath:          "/var/livekit/recordings",
+			// Correct default storage path for Windows/Local dev
+			StoragePath:          "data/recordings",
 			MaxRecordingSize:     10 * 1024 * 1024 * 1024, // 10 GB
 			DefaultRetentionDays: 30,
-			AutoPublish:          false,
+			AutoPublish:          true, // Auto publish by default for ease of use
 			GenerateThumbnails:   true,
 			EnableTranscoding:    true,
 			TranscodingQualities: []string{"1080p", "720p", "480p", "360p"},
@@ -121,13 +125,87 @@ func NewVODService(config *VODConfig) *VODService {
 		}
 	}
 
-	return &VODService{
+	s := &VODService{
 		recordings:         make(map[string]*VODRecording),
 		streamerRecordings: make(map[livekit.ParticipantIdentity][]string),
 		playbackSessions:   make(map[string]*VODPlaybackSession),
 		logger:             logger.GetLogger(),
 		config:             config,
 	}
+
+	// Restore recordings from disk
+	s.restoreFromDisk()
+	return s
+}
+
+func (vs *VODService) restoreFromDisk() {
+	files, err := os.ReadDir(vs.config.StoragePath)
+	if err != nil {
+		vs.logger.Infow("could not read recordings dir", "path", vs.config.StoragePath, "error", err)
+		return
+	}
+
+	for _, f := range files {
+		if f.IsDir() || !strings.HasSuffix(f.Name(), ".mp4") {
+			continue
+		}
+
+		// Filename format: rec-{timestamp}-{streamerID}.mp4 or just {id}.mp4
+		// We use ID as filename without extension
+		id := strings.TrimSuffix(f.Name(), ".mp4")
+
+		// Skip if already exists (unlikely on new service)
+		if _, ok := vs.recordings[id]; ok {
+			continue
+		}
+
+		info, _ := f.Info()
+
+		// Check for sidecar JSON metadata
+		jsonPath := fmt.Sprintf("%s/%s.json", vs.config.StoragePath, id)
+		var rec *VODRecording
+
+		if metaData, err := os.ReadFile(jsonPath); err == nil {
+			// Found metadata file
+			rec = &VODRecording{}
+			if err := json.Unmarshal(metaData, rec); err != nil {
+				vs.logger.Errorw("failed to unmarshal metadata", err, "id", id)
+				// Fallback to basic recovery below
+				rec = nil
+			}
+		}
+
+		if rec == nil {
+			// Fallback: Try to parse metadata from ID or just use defaults
+			// ID: rec-1766333929869-streamer-identity
+			parts := strings.SplitN(id, "-", 3)
+			var streamerID string
+			if len(parts) >= 3 {
+				streamerID = parts[2]
+			} else {
+				streamerID = "unknown"
+			}
+
+			rec = &VODRecording{
+				ID:           id,
+				RoomName:     "Restored Recording",
+				StreamerID:   livekit.ParticipantIdentity(streamerID),
+				StreamerName: streamerID,
+				Title:        "Restored: " + id,
+				Status:       VODStatusReady,
+				RecordedAt:   info.ModTime(),
+				IsPublic:     true,
+			}
+		}
+
+		// Ensure key fields are set correctly after restore
+		rec.VideoURL = fmt.Sprintf("/videos/%s", f.Name())
+		rec.FileSize = info.Size()
+
+		vs.recordings[id] = rec
+		vs.streamerRecordings[rec.StreamerID] = append(vs.streamerRecordings[rec.StreamerID], id)
+	}
+	vs.logger.Infow("restored recordings from disk", "count", len(vs.recordings))
 }
 
 // StartRecording initiates a new VOD recording
@@ -171,7 +249,31 @@ func (vs *VODService) StartRecording(
 		"streamerID", streamerID,
 	)
 
+	// Persist metadata immediately
+	go vs.saveMetadata(recordingID)
+
 	return recording, nil
+}
+
+func (vs *VODService) saveMetadata(recordingID string) {
+	vs.mu.RLock()
+	rec, ok := vs.recordings[recordingID]
+	vs.mu.RUnlock()
+
+	if !ok {
+		return
+	}
+
+	data, err := json.MarshalIndent(rec, "", "  ")
+	if err != nil {
+		vs.logger.Errorw("failed to marshal metadata", err)
+		return
+	}
+
+	filename := fmt.Sprintf("%s/%s.json", vs.config.StoragePath, recordingID)
+	if err := os.WriteFile(filename, data, 0644); err != nil {
+		vs.logger.Errorw("failed to write metadata file", err)
+	}
 }
 
 // StopRecording stops an active recording
@@ -324,6 +426,34 @@ func (vs *VODService) ListRecordingsByStreamer(
 	}
 
 	return recordings, nil
+}
+
+// ListAllRecordings returns all recordings
+func (vs *VODService) ListAllRecordings(
+	ctx context.Context,
+	limit int,
+	offset int,
+) ([]*VODRecording, error) {
+	vs.mu.RLock()
+	defer vs.mu.RUnlock()
+
+	// Gather all recordings
+	allRecs := make([]*VODRecording, 0, len(vs.recordings))
+	for _, rec := range vs.recordings {
+		allRecs = append(allRecs, rec)
+	}
+
+	// Apply pagination (simple slice)
+	start := offset
+	if start >= len(allRecs) {
+		return []*VODRecording{}, nil
+	}
+	end := start + limit
+	if end > len(allRecs) {
+		end = len(allRecs)
+	}
+
+	return allRecs[start:end], nil
 }
 
 // StartPlaybackSession starts a new playback session

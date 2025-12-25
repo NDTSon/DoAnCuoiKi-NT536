@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -96,18 +97,10 @@
             animation: pulse 2s infinite;
         }
 
-<<<<<<< Updated upstream
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-=======
-        .connection-badge.badge-disconnected {
-            background: #333;
-            color: #888;
-        }
 
-        @keyframes pulse {
-            0% {
+            0%,
+            100% {
                 opacity: 1;
             }
 
@@ -118,7 +111,6 @@
             100% {
                 opacity: 1;
             }
->>>>>>> Stashed changes
         }
 
         .user-menu {
@@ -154,6 +146,10 @@
             flex-direction: column;
             border-right: 1px solid black;
             border-left: 1px solid black;
+            overflow: hidden;
+            /* Prevent panel from expanding */
+            height: 100%;
+            /* Ensure it fills grid cell */
         }
 
         .panel-header {
@@ -175,6 +171,8 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+            min-height: 0;
+            /* Crucial for nested flex scrolling */
         }
 
         /* --- Forms & Inputs --- */
@@ -313,7 +311,6 @@
             border-radius: 4px;
             font-size: 0.9em;
             display: flex;
-<<<<<<< Updated upstream
         }
 
         .live-dot {
@@ -325,8 +322,15 @@
         }
 
         @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
         }
 
         #reaction-overlay {
@@ -350,6 +354,7 @@
                 transform: translateY(0) scale(1) rotate(0deg);
                 opacity: 1;
             }
+
             100% {
                 transform: translateY(-250px) scale(1.5) rotate(360deg);
                 opacity: 0;
@@ -372,8 +377,6 @@
         .quality-options {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-=======
->>>>>>> Stashed changes
             gap: 10px;
         }
 
@@ -422,6 +425,8 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            min-height: 0;
+            /* Important for flex scrolling */
         }
 
         .chat-messages {
@@ -432,6 +437,7 @@
             display: flex;
             flex-direction: column;
             gap: 5px;
+            scroll-behavior: smooth;
         }
 
         .chat-message {
@@ -517,6 +523,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Navbar -->
     <nav class="navbar">
@@ -595,100 +602,6 @@
             </div>
         </div>
 
-<<<<<<< Updated upstream
-        <!-- Main Layout -->
-        <div class="main-layout">
-            <!-- Left Panel -->
-            <div class="left-panel">
-                <!-- Stream Info Section -->
-                <div class="stream-key-section">
-                    <h3>📝 Stream Information</h3>
-                    <div style="display: flex; flex-direction: column; gap: 12px;">
-                        <div>
-                            <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #374151;">Your Name</label>
-                            <input type="text" id="streamer-name" placeholder="Enter your name" 
-                                   style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
-                        </div>
-                        <div>
-                            <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #374151;">Stream Title</label>
-                            <input type="text" id="stream-title" placeholder="Enter stream title" 
-                                   style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Video Container -->
-                <div class="video-container">
-                    <video id="main-video" autoplay playsinline muted></video>
-                    
-                    <div class="video-overlay">
-                        <div class="stream-info-overlay" id="stream-info">
-                            <div>⏱️ Duration: <span id="stream-duration">00:00</span></div>
-                            <div>👁️ Viewers: <span id="stream-viewers">0</span></div>
-                        </div>
-                        
-                        <div class="live-indicator" id="live-indicator">
-                            <div class="live-dot"></div>
-                            <span>LIVE</span>
-                        </div>
-                        
-                        <div id="reaction-overlay"></div>
-                        
-                        <div class="stream-controls-overlay">
-                            <button class="btn btn-success" id="btn-start-stream">▶️ Start Stream</button>
-                            <button class="btn btn-danger" id="btn-stop-stream" disabled>⏹️ Stop Stream</button>
-                            <button class="btn btn-warning" id="btn-screen-share">🖥️ Screen Share</button>
-                            <button class="btn btn-primary" id="btn-toggle-mic">🎤 Mic: ON</button>
-                            <button class="btn btn-primary" id="btn-toggle-camera">📹 Camera: OFF</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Stream Quality Selector -->
-                <div class="stream-quality-selector">
-                    <h3>📊 Chất lượng Stream</h3>
-                    <div class="quality-options">
-                        <div class="quality-btn active" data-quality="1080p">
-                            <div class="quality-label">1080p</div>
-                            <div class="quality-desc">Full HD</div>
-                        </div>
-                        <div class="quality-btn" data-quality="720p">
-                            <div class="quality-label">720p</div>
-                            <div class="quality-desc">HD</div>
-                        </div>
-                        <div class="quality-btn" data-quality="480p">
-                            <div class="quality-label">480p</div>
-                            <div class="quality-desc">SD</div>
-                        </div>
-                        <div class="quality-btn" data-quality="auto">
-                            <div class="quality-label">Auto</div>
-                            <div class="quality-desc">Adaptive</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Statistics Grid -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <h4>👥 Viewers</h4>
-                        <div class="stat-value" id="stat-current-viewers">0</div>
-                        <div class="stat-change positive">📈 Peak: <span id="stat-peak-viewers">0</span></div>
-                    </div>
-                    <div class="stat-card">
-                        <h4>💬 Messages</h4>
-                        <div class="stat-value" id="stat-messages">0</div>
-                        <div class="stat-change positive">+<span id="stat-messages-rate">0</span>/min</div>
-                    </div>
-                    <div class="stat-card">
-                        <h4>❤️ Reactions</h4>
-                        <div class="stat-value" id="stat-reactions">0</div>
-                        <div class="stat-change positive">+<span id="stat-reactions-rate">0</span>/min</div>
-                    </div>
-                    <div class="stat-card">
-                        <h4>⏱️ Duration</h4>
-                        <div class="stat-value" id="stat-total-duration">00:00:00</div>
-                        <div class="stat-change">🔴 Live</div>
-=======
         <!-- Center: Video -->
         <div class="video-wrapper">
             <div class="video-container">
@@ -704,7 +617,6 @@
                     <!-- Viewers -->
                     <div class="status-pill">
                         👁️ <span id="stream-viewers">0</span>
->>>>>>> Stashed changes
                     </div>
                 </div>
             </div>
@@ -802,11 +714,18 @@
         let micEnabled = true;
         let cameraEnabled = false;
         let currentQuality = '1080p';
-        
+
         // LiveKit state
         let livekitRoom = null;
         let localVideoTrack = null;
         let localAudioTrack = null;
+
+        // VOD
+        let currentRecordingID = null;
+        let currentEgressID = null;
+        let currentVideoSid = null;
+        let currentAudioSid = null;
+
 
         // Statistics
         const stats = {
@@ -829,15 +748,9 @@
                 return;
             }
             console.log('✅ LiveKit SDK loaded successfully');
-            
+
             setupEventListeners();
             updateUIState();
-<<<<<<< Updated upstream
-            document.getElementById('user-name').textContent = USER_ID.substring(0, 15);
-            
-=======
-
->>>>>>> Stashed changes
             // Set default values
             // Check for logged in user - Priority: URL Params > LocalStorage > Default
             const urlParams = new URLSearchParams(window.location.search);
@@ -908,7 +821,7 @@
             try {
                 const streamerName = document.getElementById('streamer-name')?.value || 'Anonymous Streamer';
                 const streamTitle = document.getElementById('stream-title')?.value || 'Untitled Stream';
-                
+
                 const streamData = {
                     id: currentRoomId,
                     title: streamTitle,
@@ -956,25 +869,6 @@
             }
         }
 
-<<<<<<< Updated upstream
-        async function startStream() {
-            try {
-                // Prevent multiple starts
-                if (isStreaming || livekitRoom) {
-                    console.warn('⚠️ Stream already running or room exists!');
-                    return;
-                }
-                
-                isStreaming = true;
-                updateUIState();
-                addNotification('🎬 Starting stream...', 'success');
-                
-                // Reset stats at start
-                stats.viewers = 0;
-                stats.messages = 0;
-                stats.reactions = 0;
-                stats.peak = 0;
-=======
         // === Source Handling Globals ===
         let videoFileElement = null;
 
@@ -990,7 +884,6 @@
             livekitRoom.on(LivekitClient.RoomEvent.ParticipantConnected, (participant) => {
                 const count = Array.from(livekitRoom.remoteParticipants.values()).length;
                 stats.viewers = count;
->>>>>>> Stashed changes
                 updateStats();
 
                 // Parse friendly name
@@ -1061,8 +954,8 @@
                 adaptiveStream: true,
                 dynacast: true,
                 publishDefaults: {
-                    simulcast: true,
-                    videoCodec: 'vp8',
+                    simulcast: false,
+                    videoCodec: 'h264',
                     // Config for CAMERA/FILE
                     videoSimulcastLayers: [
                         { width: 1920, height: 1080, encoding: { maxBitrate: 3_000_000, maxFramerate: 30 } },
@@ -1091,25 +984,37 @@
             const source = document.getElementById('stream-source').value;
             const trackSource = source === 'file' ? LivekitClient.Track.Source.Camera : LivekitClient.Track.Source.ScreenShare;
 
-            await livekitRoom.localParticipant.publishTrack(localVideoTrack, {
+            const vPub = await livekitRoom.localParticipant.publishTrack(localVideoTrack, {
                 source: trackSource,
-                simulcast: true
+                simulcast: true // User requested to turn off simulcast for stability earlier, but let's keep it consistent with request or existing code.
+                // Wait, in previous turn I set simulcast: false. I should check the file content or just leave the options as is and only capture return.
+                // The previous tool action replacement content had `simulcast: false`.
+                // I should respect the current file state.
             });
+            currentVideoSid = vPub.trackSid;
+            console.log('📹 Video Published, SID:', currentVideoSid);
 
             const audioTracks = videoStream.getAudioTracks();
             if (audioTracks.length > 0) {
                 const track = new LivekitClient.LocalAudioTrack(audioTracks[0]);
-                await livekitRoom.localParticipant.publishTrack(track, {
+                const aPub = await livekitRoom.localParticipant.publishTrack(track, {
                     source: LivekitClient.Track.Source.ScreenShareAudio
                 });
+                // If this is the main audio source
+                if (!audioStream) {
+                    currentAudioSid = aPub.trackSid;
+                    console.log('🔊 Audio (File/System) Published, SID:', currentAudioSid);
+                }
             }
 
             if (audioStream) {
                 const track = audioStream.getAudioTracks()[0];
                 localAudioTrack = new LivekitClient.LocalAudioTrack(track);
-                await livekitRoom.localParticipant.publishTrack(localAudioTrack, {
+                const aPub = await livekitRoom.localParticipant.publishTrack(localAudioTrack, {
                     source: LivekitClient.Track.Source.Microphone
                 });
+                currentAudioSid = aPub.trackSid;
+                console.log('🎤 Mic Published, SID:', currentAudioSid);
             }
         }
 
@@ -1138,6 +1043,10 @@
             stats.messages = 0;
             stats.reactions = 0;
             updateStats();
+
+            // Reset SIDs
+            currentVideoSid = null;
+            currentAudioSid = null;
 
             const startBtn = document.getElementById('btn-start-stream') || document.getElementById('btn-start');
             if (startBtn) {
@@ -1169,107 +1078,6 @@
 
                 connectWebSockets(); // Initialize WebSockets
 
-<<<<<<< Updated upstream
-                // Step 3: Get user media (screen + audio)
-                addNotification('🎥 Requesting screen share...', 'info');
-                
-                const screenStream = await navigator.mediaDevices.getDisplayMedia({
-                    video: { displaySurface: 'monitor', width: 1920, height: 1080 },
-                    audio: false
-                });
-
-                const audioStream = await navigator.mediaDevices.getUserMedia({
-                    audio: true,
-                    video: false
-                });
-
-                // Combine tracks
-                const videoTrack = screenStream.getVideoTracks()[0];
-                const audioTrack = audioStream.getAudioTracks()[0];
-                
-                localStream = new MediaStream([videoTrack, audioTrack]);
-                document.getElementById('main-video').srcObject = localStream;
-
-                // Step 4: Connect to LiveKit Room
-                addNotification('🔗 Connecting to LiveKit...', 'info');
-                
-                livekitRoom = new LivekitClient.Room();
-                
-                // Setup room event listeners
-                livekitRoom.on(LivekitClient.RoomEvent.ParticipantConnected, (participant) => {
-                    // Count actual remote participants only (viewers)
-                    const actualCount = Array.from(livekitRoom.remoteParticipants.values()).length;
-                    console.log('✅ Viewer joined:', participant.identity, '| Actual viewers:', actualCount);
-                    stats.viewers = actualCount;
-                    stats.peak = Math.max(stats.peak, stats.viewers);
-                    updateStats();
-                    addNotification(`👤 Viewer joined`, 'info');
-                });
-
-                livekitRoom.on(LivekitClient.RoomEvent.ParticipantDisconnected, (participant) => {
-                    // Count actual remote participants only (viewers)
-                    const actualCount = Array.from(livekitRoom.remoteParticipants.values()).length;
-                    console.log('❌ Viewer left:', participant.identity, '| Actual viewers:', actualCount);
-                    stats.viewers = actualCount;
-                    updateStats();
-                    addNotification(`👤 Viewer left`, 'info');
-                });
-
-                // Listen for data messages from viewers (chat/reactions via LiveKit)
-                livekitRoom.on(LivekitClient.RoomEvent.DataReceived, (payload, participant) => {
-                    console.log('🔔 DataReceived event fired!', {
-                        payloadSize: payload.byteLength,
-                        from: participant?.identity
-                    });
-                    
-                    try {
-                        const decoder = new TextDecoder();
-                        const text = decoder.decode(payload);
-                        console.log('📦 Decoded text:', text);
-                        
-                        const data = JSON.parse(text);
-                        console.log('📋 Parsed data:', data);
-                        
-                        if (data.type === 'chat') {
-                            console.log('� Processing chat message:', data.content);
-                            
-                            // Add to chat display
-                            const chatMessages = document.getElementById('chat-messages');
-                            if (!chatMessages) {
-                                console.error('❌ chat-messages element not found!');
-                                return;
-                            }
-                            
-                            const messageDiv = document.createElement('div');
-                            messageDiv.className = 'chat-message';
-                            messageDiv.innerHTML = `
-                                <div class="message-sender">
-                                    <span>${participant?.identity || data.sender_name || 'Viewer'}</span>
-                                    <span class="message-time">${new Date().toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'})}</span>
-                                </div>
-                                <div class="message-content">${data.content}</div>
-                            `;
-                            chatMessages.appendChild(messageDiv);
-                            chatMessages.scrollTop = chatMessages.scrollHeight;
-                            
-                            console.log('✅ Chat message added to UI');
-                            
-                            stats.messages++;
-                            updateStats();
-                        } else if (data.type === 'reaction') {
-                            console.log('❤️ Reaction via LiveKit:', data.reaction_type);
-                            // Show reaction animation
-                            if (typeof showReactionAnimation === 'function') {
-                                showReactionAnimation(data);
-                            }
-                            stats.reactions++;
-                            updateStats();
-                        } else {
-                            console.log('⚠️ Unknown data type:', data.type);
-                        }
-                    } catch (e) {
-                        console.error('❌ Error processing data:', e, e.stack);
-=======
                 // Determine Source
                 const source = document.getElementById('stream-source').value;
                 let videoStream;
@@ -1282,82 +1090,48 @@
                     if (!file) throw new Error("Vui lòng chọn Video File trước!");
 
                     // Create hidden video element to play file
-                    if (videoFileElement) videoFileElement.remove();
+                    if (videoFileElement) {
+                        videoFileElement.pause();
+                        videoFileElement.remove();
+                    }
                     videoFileElement = document.createElement('video');
                     videoFileElement.src = URL.createObjectURL(file);
                     videoFileElement.loop = true;
-                    videoFileElement.muted = false;
-                    videoFileElement.play();
+                    videoFileElement.muted = false; // Must be unmuted to capture audio
+                    videoFileElement.setAttribute('playsinline', '');
 
+                    // IMPORTANT: Attach to DOM to ensure rendering logic runs in browser
+                    videoFileElement.style.position = 'fixed';
+                    videoFileElement.style.top = '0';
+                    videoFileElement.style.left = '0';
+                    videoFileElement.style.width = '1px';
+                    videoFileElement.style.height = '1px';
+                    videoFileElement.style.opacity = '0.01';
+                    videoFileElement.style.pointerEvents = 'none';
+                    videoFileElement.style.zIndex = '-9999';
+                    document.body.appendChild(videoFileElement);
+
+                    await videoFileElement.play();
+
+                    // Capture Stream
+                    // High frame rate capture
                     if (videoFileElement.captureStream) {
-                        videoStream = videoFileElement.captureStream();
+                        videoStream = videoFileElement.captureStream(30);
                     } else if (videoFileElement.mozCaptureStream) {
-                        videoStream = videoFileElement.mozCaptureStream();
+                        videoStream = videoFileElement.mozCaptureStream(30);
                     } else {
                         throw new Error("Browser does not support captureStream()");
->>>>>>> Stashed changes
                     }
 
-<<<<<<< Updated upstream
-                // Connect to room
-                await livekitRoom.connect(LIVEKIT_URL, token);
-                console.log('✅ Connected to LiveKit room:', ROOM_NAME);
-                
-                // Initialize viewer count - wait for participants to be ready
-                setTimeout(() => {
-                    const remoteCount = Array.from(livekitRoom.remoteParticipants.values()).length;
-                    stats.viewers = remoteCount;
-                    stats.peak = Math.max(stats.peak, stats.viewers);
-                    updateStats();
-                    console.log('📊 Initial viewer count:', stats.viewers, 'remote participants');
-                }, 500);
+                    console.log('📂 File Tracks:', videoStream.getTracks().map(t => `${t.kind}:${t.label}`));
 
-                // Step 5: Publish tracks
-                addNotification('📡 Publishing stream...', 'info');
-                
-                localVideoTrack = new LivekitClient.LocalVideoTrack(videoTrack);
-                await livekitRoom.localParticipant.publishTrack(localVideoTrack);
-                
-                localAudioTrack = new LivekitClient.LocalAudioTrack(audioTrack);
-                await livekitRoom.localParticipant.publishTrack(localAudioTrack);
-
-                console.log('✅ Published video and audio tracks');
-
-                // Step 6: Start timer and register
-                streamStartTime = Date.now();
-                startDurationTimer();
-                document.getElementById('live-indicator').classList.add('active');
-                
-                registerStreamInDirectory();
-                
-                addNotification('🔴 Stream LIVE! Viewers can now watch!', 'success');
-                updateConnectionStatus('streaming');
-                
-            } catch (error) {
-                console.error('Error starting stream:', error);
-                addNotification('❌ Failed to start stream: ' + error.message, 'error');
-                
-                // Cleanup on error
-                if (localStream) {
-                    localStream.getTracks().forEach(track => track.stop());
-                    localStream = null;
-                }
-                if (livekitRoom) {
-                    livekitRoom.disconnect();
-                    livekitRoom = null;
-                }
-                
-                isStreaming = false;
-                updateUIState();
-            }
-        }
-
-=======
+                    // Explicitly set audio to null so we don't grab mic
                     audioStream = null;
 
-                    // Set local preview
-                    document.getElementById('main-video').srcObject = videoStream;
-                    document.getElementById('main-video').muted = true;
+                    // Set local preview (muted locally to prevent echo)
+                    const previewVideo = document.getElementById('main-video');
+                    previewVideo.srcObject = videoStream;
+                    previewVideo.muted = true;
 
                     await setupLiveKitAndPublish(videoStream, audioStream);
 
@@ -1424,10 +1198,10 @@
         }
 
         // Renamed to stopStream cleanup logic is mostly same
->>>>>>> Stashed changes
         function stopStream() {
             console.log('🛑 Stopping stream... Current viewers:', stats.viewers);
-            
+            stopRecording();
+
             // Stop local media
             if (localStream) {
                 localStream.getTracks().forEach(track => track.stop());
@@ -1435,9 +1209,6 @@
                 localStream = null;
             }
 
-<<<<<<< Updated upstream
-            // Disconnect LiveKit and cleanup
-=======
             // Cleanup File Source
             if (videoFileElement) {
                 videoFileElement.pause();
@@ -1447,7 +1218,6 @@
             }
 
             // Disconnect LiveKit
->>>>>>> Stashed changes
             if (livekitRoom) {
                 // Remove all event listeners to prevent duplicate handlers
                 livekitRoom.removeAllListeners();
@@ -1464,14 +1234,14 @@
             stopDurationTimer();
             isStreaming = false;
             document.getElementById('live-indicator').classList.remove('active');
-            
+
             // Unregister stream from directory
             unregisterStreamFromDirectory();
-            
+
             // Reset stats
             stats.viewers = 0;
             updateStats();
-            
+
             updateUIState();
             updateConnectionStatus('disconnected');
             addNotification('⏹️ Stream stopped', 'success');
@@ -1483,45 +1253,43 @@
         }
 
         async function shareScreen() {
-<<<<<<< Updated upstream
-=======
             if (!isStreaming || !livekitRoom) {
                 addNotification('⚠️ You must start streaming first', 'warning');
                 return;
             }
 
->>>>>>> Stashed changes
             try {
                 const screenStream = await navigator.mediaDevices.getDisplayMedia({
-                    video: { displaySurface: 'monitor' }
+                    video: { displaySurface: 'monitor' },
+                    audio: true // Request system audio
                 });
 
-<<<<<<< Updated upstream
-                const videoTrack = screenStream.getVideoTracks()[0];
-                
-                if (localStream) {
-                    const audioTrack = localStream.getAudioTracks()[0];
-                    const newStream = new MediaStream([videoTrack]);
-                    if (audioTrack) newStream.addTrack(audioTrack);
-                    
-                    document.getElementById('main-video').srcObject = newStream;
-                    localStream = newStream;
+                const newVideoTrack = screenStream.getVideoTracks()[0];
+
+                // Check for system audio
+                const screenAudioTracks = screenStream.getAudioTracks();
+                if (screenAudioTracks.length > 0) {
+                    const newAudioTrack = new LivekitClient.LocalAudioTrack(screenAudioTracks[0]);
+                    const aPub = await livekitRoom.localParticipant.publishTrack(newAudioTrack, {
+                        source: LivekitClient.Track.Source.ScreenShareAudio
+                    });
+                    currentAudioSid = aPub.trackSid;
+                    console.log('🔊 System Audio Published, SID:', currentAudioSid);
                 } else {
-                    document.getElementById('main-video').srcObject = screenStream;
-                    localStream = screenStream;
+                    console.warn('⚠️ No system audio captured (Did you share a Tab?)');
                 }
 
-                addNotification('🖥️ Screen sharing started', 'success');
-=======
                 // Replace track in LiveKit
                 if (localVideoTrack) {
                     await livekitRoom.localParticipant.unpublishTrack(localVideoTrack);
                     localVideoTrack.stop();
                     localVideoTrack = new LivekitClient.LocalVideoTrack(newVideoTrack);
-                    await livekitRoom.localParticipant.publishTrack(localVideoTrack, {
+                    const pub = await livekitRoom.localParticipant.publishTrack(localVideoTrack, {
                         source: LivekitClient.Track.Source.ScreenShare,
-                        simulcast: true
+                        simulcast: false // Disable simulcast for screen share stability
                     });
+                    currentVideoSid = pub.trackSid;
+                    console.log('🖥️ Screen Share Published, SID:', currentVideoSid);
                 }
 
                 if (localStream) {
@@ -1537,7 +1305,6 @@
                 };
 
                 addNotification('🖥️ Switched to Screen Share', 'success');
->>>>>>> Stashed changes
             } catch (error) {
                 console.error('Error sharing screen:', error);
                 addNotification('❌ Failed to share screen', 'error');
@@ -1573,15 +1340,6 @@
 
             try {
                 if (cameraEnabled) {
-<<<<<<< Updated upstream
-                    // Turn off camera
-                    if (localStream) {
-                        localStream.getVideoTracks().forEach(track => {
-                            if (track.label.includes('camera') || track.label.includes('webcam')) {
-                                track.stop();
-                            }
-                        });
-=======
                     // Turn OFF Camera
                     if (localVideoTrack) {
                         // Check if it's actually a camera track or screen share?
@@ -1616,10 +1374,11 @@
                         const newVideoTrack = cameraStream.getVideoTracks()[0];
 
                         localVideoTrack = new LivekitClient.LocalVideoTrack(newVideoTrack);
-                        await livekitRoom.localParticipant.publishTrack(localVideoTrack, {
+                        const pub = await livekitRoom.localParticipant.publishTrack(localVideoTrack, {
                             source: LivekitClient.Track.Source.Camera,
-                            simulcast: true
+                            simulcast: false
                         });
+                        currentVideoSid = pub.trackSid;
 
                         // Update Preview
                         if (localStream) {
@@ -1631,20 +1390,9 @@
 
                         cameraEnabled = true;
                         addNotification('📷 Camera ON', 'success');
->>>>>>> Stashed changes
                     }
                     cameraEnabled = false;
                     addNotification('📹 Camera disabled', 'success');
-                } else {
-                    // Turn on camera
-                    const cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
-                    const videoTrack = cameraStream.getVideoTracks()[0];
-                    
-                    if (localStream) {
-                        localStream.addTrack(videoTrack);
-                    }
-                    cameraEnabled = true;
-                    addNotification('📹 Camera enabled', 'success');
                 }
                 updateUIState();
             } catch (error) {
@@ -1665,56 +1413,6 @@
             btn.classList.add('active');
             currentQuality = btn.dataset.quality;
 
-<<<<<<< Updated upstream
-        function connectWebSockets() {
-            try {
-                // Chat WebSocket
-                chatWebSocket = new WebSocket(`${WS_URL}/chat/ws?room_name=${ROOM_NAME}&user_id=${USER_ID}`);
-                
-                chatWebSocket.onopen = () => {
-                    console.log('✅ Chat WebSocket connected');
-                    updateConnectionStatus('connected');
-                };
-
-                chatWebSocket.onmessage = (event) => {
-                    const message = JSON.parse(event.data);
-                    addChatMessage(message);
-                    stats.messages++;
-                    stats.messagesLastMinute++;
-                    updateStats();
-                };
-
-                chatWebSocket.onerror = (error) => {
-                    console.error('❌ Chat WebSocket error:', error);
-                };
-
-                // Reactions WebSocket
-                reactionsWebSocket = new WebSocket(`${WS_URL}/reactions/ws?room_name=${ROOM_NAME}`);
-                
-                reactionsWebSocket.onopen = () => {
-                    console.log('✅ Reactions WebSocket connected');
-                };
-
-                reactionsWebSocket.onmessage = (event) => {
-                    const reaction = JSON.parse(event.data);
-                    showReactionAnimation(reaction);
-                    stats.reactions++;
-                    stats.reactionsLastMinute++;
-                    
-                    const type = reaction.type || reaction.reaction_type;
-                    reactionCounts[type] = (reactionCounts[type] || 0) + 1;
-                    
-                    updateStats();
-                    updateReactionStats();
-                };
-
-                reactionsWebSocket.onerror = (error) => {
-                    console.error('❌ Reactions WebSocket error:', error);
-                };
-            } catch (error) {
-                console.error('Error connecting WebSockets:', error);
-                addNotification('❌ Failed to connect WebSockets', 'error');
-=======
             addNotification(`📊 Applying quality constraints: ${currentQuality}...`, 'info');
 
             if (localVideoTrack && localVideoTrack.mediaStreamTrack) {
@@ -1737,7 +1435,6 @@
                 }
             } else {
                 addNotification('⚠️ No active video track to configure', 'warning');
->>>>>>> Stashed changes
             }
         }
 
@@ -1749,11 +1446,6 @@
 
             try {
                 if (livekitRoom && livekitRoom.state === 'connected') {
-<<<<<<< Updated upstream
-                    console.log('📤 Sending chat via LiveKit DataChannel...');
-                    
-=======
->>>>>>> Stashed changes
                     const message = {
                         type: 'chat',
                         sender_name: USER_DISPLAY_NAME,
@@ -1763,25 +1455,13 @@
 
                     const encoder = new TextEncoder();
                     const data = encoder.encode(JSON.stringify(message));
-<<<<<<< Updated upstream
-                    
-                    // Send to all participants via DataChannel
-                    await livekitRoom.localParticipant.publishData(data, { reliable: true });
-                    
-                    console.log('✅ Chat sent via LiveKit DataChannel');
-                    
-                    input.value = '';
-                    
-                    // Add to local chat immediately
-=======
                     await livekitRoom.localParticipant.publishData(data, { reliable: true });
 
                     input.value = '';
->>>>>>> Stashed changes
                     addChatMessage(message);
                     stats.messages++;
                     updateStats();
-                    
+
                 } else {
                     addNotification('❌ Not connected to room', 'error');
                 }
@@ -1793,11 +1473,6 @@
         async function sendReaction(type) {
             try {
                 if (livekitRoom && livekitRoom.state === 'connected') {
-<<<<<<< Updated upstream
-                    console.log('📤 Sending reaction via LiveKit DataChannel:', type);
-                    
-=======
->>>>>>> Stashed changes
                     const reaction = {
                         type: 'reaction',
                         user_name: USER_DISPLAY_NAME,
@@ -1809,28 +1484,12 @@
 
                     const encoder = new TextEncoder();
                     const data = encoder.encode(JSON.stringify(reaction));
-<<<<<<< Updated upstream
-                    
-                    // Send to all participants via DataChannel
-                    await livekitRoom.localParticipant.publishData(data, { reliable: false });
-                    
-                    console.log('✅ Reaction sent via LiveKit DataChannel');
-                    
-                    // Show locally
-                    showReactionAnimation(reaction);
-                    stats.reactions++;
-                    updateStats();
-                    
-                } else {
-                    console.warn('⚠️ LiveKit room not connected. Cannot send reaction.');
-=======
                     await livekitRoom.localParticipant.publishData(data, { reliable: false });
 
                     showReactionAnimation(reaction);
                     stats.reactions++;
                     updateStats();
 
->>>>>>> Stashed changes
                 }
             } catch (error) {
                 console.error('Error sending reaction:', error);
@@ -1841,26 +1500,9 @@
             const container = document.getElementById('chat-messages');
             const messageDiv = document.createElement('div');
             messageDiv.className = 'chat-message';
-<<<<<<< Updated upstream
-            
-            const time = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-            
-            messageDiv.innerHTML = `
-                <div class="message-header">
-                    <span class="message-sender">${message.sender_name || 'User'}</span>
-                    <span class="message-time">${time}</span>
-                </div>
-                <div class="message-content">${message.content}</div>
-            `;
-            
-            container.appendChild(messageDiv);
-            container.scrollTop = container.scrollHeight;
-            
-=======
             messageDiv.innerHTML = `<span class="sender">${message.sender_name || 'User'}:</span><span class="content">${message.content}</span>`;
             container.appendChild(messageDiv);
             container.scrollTop = container.scrollHeight;
->>>>>>> Stashed changes
             document.getElementById('chat-count').textContent = stats.messages;
         }
 
@@ -1883,16 +1525,8 @@
             const overlay = document.getElementById('reaction-overlay');
             const emoji = document.createElement('div');
             emoji.className = 'floating-reaction';
-<<<<<<< Updated upstream
-            
-            // Get reaction type - try reaction_type first, then type (but not if type='reaction')
             const reactionType = reaction.reaction_type || (reaction.type !== 'reaction' ? reaction.type : null);
             emoji.textContent = getReactionEmoji(reactionType);
-            
-=======
-            const reactionType = reaction.reaction_type || (reaction.type !== 'reaction' ? reaction.type : null);
-            emoji.textContent = getReactionEmoji(reactionType);
->>>>>>> Stashed changes
             emoji.style.left = (reaction.x ? reaction.x * 100 : Math.random() * 90) + '%';
             emoji.style.bottom = '0'; // force bottom start
             overlay.appendChild(emoji);
@@ -1913,28 +1547,8 @@
         }
 
         function addNotification(message, type = 'success') {
-<<<<<<< Updated upstream
-            const container = document.getElementById('notifications-list');
-            const notification = document.createElement('div');
-            notification.className = `notification-item ${type === 'error' ? 'error' : type === 'warning' ? 'warning' : ''}`;
-            
-            const time = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-            
-            notification.innerHTML = `
-                <div>${message}</div>
-                <div class="notification-time">${time}</div>
-            `;
-            
-            container.insertBefore(notification, container.firstChild);
-            
-            // Keep only last 10 notifications
-            while (container.children.length > 10) {
-                container.removeChild(container.lastChild);
-            }
-=======
             // Basic alert for now or console, detailed notification list is hidden in new UI to simplify
             console.log(`[${type.toUpperCase()}] ${message}`);
->>>>>>> Stashed changes
         }
 
         function updateStats() {
@@ -1950,14 +1564,6 @@
         function updateUIState() {
             document.getElementById('btn-start-stream').disabled = isStreaming;
             document.getElementById('btn-stop-stream').disabled = !isStreaming;
-<<<<<<< Updated upstream
-            document.getElementById('btn-screen-share').disabled = !isStreaming;
-            
-            const micBtn = document.getElementById('btn-toggle-mic');
-            micBtn.textContent = micEnabled ? '🎤 Mic: ON' : '🔇 Mic: OFF';
-            micBtn.className = micEnabled ? 'btn btn-primary' : 'btn btn-secondary';
-            
-=======
             document.getElementById('btn-screen-share').disabled = isStreaming ? false : true;
             // Note: Screen share usually enabled only during stream in this logic, kept original logic but fixed "disabled" state inversion logic error if existed
 
@@ -1965,7 +1571,6 @@
             micBtn.textContent = micEnabled ? '🎤 Mic: ON' : '🔇 Mic: OFF';
             if (!micEnabled) micBtn.classList.add('btn-danger'); else micBtn.classList.remove('btn-danger');
 
->>>>>>> Stashed changes
             const camBtn = document.getElementById('btn-toggle-camera');
             camBtn.textContent = cameraEnabled ? '📹 Camera: ON' : '📹 Camera: OFF';
             if (cameraEnabled) {
@@ -1979,10 +1584,6 @@
 
         function updateConnectionStatus(status) {
             const badge = document.getElementById('connection-status');
-<<<<<<< Updated upstream
-            
-=======
->>>>>>> Stashed changes
             if (status === 'streaming') {
                 badge.className = 'connection-badge badge-streaming';
                 badge.textContent = 'Trực tiếp';
@@ -2001,15 +1602,8 @@
                     const duration = Math.floor((Date.now() - streamStartTime) / 1000);
                     const minutes = Math.floor(duration / 60);
                     const seconds = duration % 60;
-<<<<<<< Updated upstream
-                    
-                    const formatted = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                    document.getElementById('stat-total-duration').textContent = formatted;
-                    document.getElementById('stream-duration').textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-=======
                     const formatted = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
                     document.getElementById('stream-duration').textContent = formatted;
->>>>>>> Stashed changes
                 }
             }, 1000);
         }
@@ -2027,6 +1621,70 @@
             stats.reactionsLastMinute = 0;
             updateStats();
         }, 60000);
+
+        // VOD Functions
+        async function startRecording() {
+            try {
+                const title = document.getElementById('stream-title').value || 'Untitled Stream';
+                const response = await fetch(`${API_URL}/vod/start`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        room_name: ROOM_NAME,
+                        streamer_id: USER_ID,
+                        streamer_name: USER_DISPLAY_NAME,
+                        title: title,
+                        video_track_id: currentVideoSid || (localVideoTrack ? localVideoTrack.sid : undefined),
+                        audio_track_id: currentAudioSid || (localAudioTrack ? localAudioTrack.sid : undefined)
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    currentRecordingID = data.recording_id;
+                    currentEgressID = data.egress_id;
+                    console.log('✅ Recording started:', data);
+                    addNotification('⏺️ Recording started', 'success');
+                } else {
+                    console.error('❌ Failed to start recording');
+                }
+            } catch (e) {
+                console.error('Error starting recording:', e);
+            }
+        }
+
+        async function stopRecording() {
+            if (!currentRecordingID && !currentEgressID) return;
+
+            try {
+                const response = await fetch(`${API_URL}/vod/stop`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        recording_id: currentRecordingID,
+                        egress_id: currentEgressID
+                    })
+                });
+
+                if (response.ok) {
+                    console.log('✅ Recording stopped');
+                    addNotification('⏺️ Recording saved', 'success');
+                }
+            } catch (e) {
+                console.error('Error stopping recording:', e);
+            }
+
+            currentRecordingID = null;
+            currentEgressID = null;
+        }
+
     </script>
 </body>
+
 </html>

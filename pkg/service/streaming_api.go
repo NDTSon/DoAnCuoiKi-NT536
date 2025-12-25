@@ -16,6 +16,7 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -35,6 +36,7 @@ type StreamingAPIService struct {
 	vodService          *streaming.VODService
 	notificationService *streaming.NotificationService
 	analyticsService    *streaming.AnalyticsService
+	egressService       *EgressService
 	logger              logger.Logger
 	upgrader            websocket.Upgrader
 	apiKey              string
@@ -42,7 +44,7 @@ type StreamingAPIService struct {
 }
 
 // NewStreamingAPIService creates a new streaming API service
-func NewStreamingAPIService() *StreamingAPIService {
+func NewStreamingAPIService(egressService *EgressService) *StreamingAPIService {
 	return &StreamingAPIService{
 		streamKeyManager:    streaming.NewStreamKeyManager(),
 		chatService:         streaming.NewChatService(),
@@ -50,6 +52,7 @@ func NewStreamingAPIService() *StreamingAPIService {
 		vodService:          streaming.NewVODService(nil),
 		notificationService: streaming.NewNotificationService(nil),
 		analyticsService:    streaming.NewAnalyticsService(nil),
+		egressService:       egressService,
 		logger:              logger.GetLogger(),
 		apiKey:              "devkey", // Default dev key - should load from config
 		apiSecret:           "secret", // Default dev secret - should load from config
@@ -149,6 +152,7 @@ func (s *StreamingAPIService) handleGetToken(w http.ResponseWriter, r *http.Requ
 		grant.SetCanPublish(true)
 		grant.SetCanPublishData(true)
 		grant.SetCanSubscribe(true)
+		grant.RoomRecord = true // Allow recording
 	} else {
 		// Viewer permissions
 		grant.SetCanPublish(false)
@@ -632,13 +636,137 @@ func (s *StreamingAPIService) handleGetRecentReactions(w http.ResponseWriter, r 
 
 // VOD Handlers - Simplified implementations
 func (s *StreamingAPIService) handleStartRecording(w http.ResponseWriter, r *http.Request) {
-	// Implementation
-	http.Error(w, "Not implemented", http.StatusNotImplemented)
+	var req struct {
+		RoomName     string `json:"room_name"`
+		StreamerID   string `json:"streamer_id"`
+		StreamerName string `json:"streamer_name"`
+		Title        string `json:"title"`
+		// Tracks
+		VideoTrackID string `json:"video_track_id"`
+		AudioTrackID string `json:"audio_track_id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if req.RoomName == "" || req.StreamerID == "" {
+		http.Error(w, "room_name and streamer_id required", http.StatusBadRequest)
+		return
+	}
+
+	// 1. Create VOD record
+	rec, err := s.vodService.StartRecording(
+		r.Context(),
+		livekit.RoomName(req.RoomName),
+		livekit.ParticipantIdentity(req.StreamerID),
+		req.StreamerName,
+		req.Title,
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// 2. Start Egress
+	// We use EncodedFileOutput to save to local disk
+	// NOTE: When running Egress in Docker, we must map to the container's path.
+	// Our run-egress.bat maps host 'data/recordings' to container '/out'.
+	filepath := fmt.Sprintf("/out/%s.mp4", rec.ID)
+
+	var info *livekit.EgressInfo
+
+	// Use RoomCompositeEgress to support source switching (Cam <-> Screen) dynamically
+	// This records the room layout, ensuring whatever the streamer publishes is captured.
+	egressReq := &livekit.RoomCompositeEgressRequest{
+		RoomName:  req.RoomName,
+		Layout:    "grid-light",
+		AudioOnly: false,
+		FileOutputs: []*livekit.EncodedFileOutput{
+			{
+				FileType: livekit.EncodedFileType_MP4,
+				Filepath: filepath,
+			},
+		},
+	}
+	info, err = s.egressService.StartRoomCompositeEgress(r.Context(), egressReq)
+	if err != nil {
+		// Cleanup VOD record if Egress fails
+		s.vodService.DeleteRecording(r.Context(), rec.ID)
+		http.Error(w, fmt.Sprintf("Failed to start egress: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Save Egress ID to metadata for stopping later
+	s.vodService.UpdateRecordingMetadata(
+		r.Context(),
+		rec.ID,
+		nil,
+		nil,
+		nil,
+		nil,
+	)
+	// Hack: We should store egressID in the VOD record, but the struct is fixed.
+	// We can put it in metadata mapping.
+	rec.Metadata["egress_id"] = info.EgressId
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success":      true,
+		"recording_id": rec.ID,
+		"egress_id":    info.EgressId,
+		"status":       "recording",
+	})
 }
 
 func (s *StreamingAPIService) handleStopRecording(w http.ResponseWriter, r *http.Request) {
-	// Implementation
-	http.Error(w, "Not implemented", http.StatusNotImplemented)
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		RecordingID string `json:"recording_id"`
+		EgressID    string `json:"egress_id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if req.EgressID != "" {
+		// Stop Egress
+		_, err := s.egressService.StopEgress(r.Context(), &livekit.StopEgressRequest{
+			EgressId: req.EgressID,
+		})
+		if err != nil {
+			s.logger.Errorw("failed to stop egress", err, "egressID", req.EgressID)
+			// Continue to stop VOD record anyway
+		}
+	}
+
+	if req.RecordingID != "" {
+		// Stop VOD record
+		// We don't know exact duration/size yet, but we'll mark it as processed
+		// In a real system, we'd wait for Egress webhooks to update this accuracy.
+		err := s.vodService.StopRecording(
+			r.Context(),
+			req.RecordingID,
+			0, // Duration unknown
+			0, // Size unknown
+		)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+	})
 }
 
 func (s *StreamingAPIService) handlePublishRecording(w http.ResponseWriter, r *http.Request) {
@@ -647,10 +775,6 @@ func (s *StreamingAPIService) handlePublishRecording(w http.ResponseWriter, r *h
 }
 
 func (s *StreamingAPIService) handleListRecordings(w http.ResponseWriter, r *http.Request) {
-<<<<<<< Updated upstream
-	// Implementation
-	http.Error(w, "Not implemented", http.StatusNotImplemented)
-=======
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -658,12 +782,23 @@ func (s *StreamingAPIService) handleListRecordings(w http.ResponseWriter, r *htt
 
 	streamerID := r.URL.Query().Get("streamer_id")
 
-	recordings, err := s.vodService.ListRecordingsByStreamer(
-		r.Context(),
-		livekit.ParticipantIdentity(streamerID),
-		50, // default limit
-		0,  // default offset
-	)
+	var recordings []*streaming.VODRecording
+	var err error
+
+	if streamerID == "" || streamerID == "ALL" {
+		recordings, err = s.vodService.ListAllRecordings(
+			r.Context(),
+			50,
+			0,
+		)
+	} else {
+		recordings, err = s.vodService.ListRecordingsByStreamer(
+			r.Context(),
+			livekit.ParticipantIdentity(streamerID),
+			50, // default limit
+			0,  // default offset
+		)
+	}
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -671,7 +806,6 @@ func (s *StreamingAPIService) handleListRecordings(w http.ResponseWriter, r *htt
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(recordings)
->>>>>>> Stashed changes
 }
 
 func (s *StreamingAPIService) handlePlayRecording(w http.ResponseWriter, r *http.Request) {

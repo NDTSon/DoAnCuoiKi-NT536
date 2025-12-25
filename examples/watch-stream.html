@@ -921,9 +921,6 @@
 
         function startAutoMode(publication) {
             stopAutoMode();
-            console.log("🛠️ ABR: Started");
-
-            // Initial Check
             publication.setVideoQuality(LivekitClient.VideoQuality.HIGH);
 
             let lastLoss = -1;
@@ -938,15 +935,12 @@
                 const delta = currentLoss - lastLoss;
                 lastLoss = currentLoss;
 
-                if (delta > 5 || net.rtt > 0.2) { // Slightly more sensitive
-                    console.log(`📉 ABR: Poor Connection (Loss: ${delta}, RTT: ${net.rtt.toFixed(2)}) -> LOW`);
+                if (delta > 5 || net.rtt > 0.2) {
                     publication.setVideoQuality(LivekitClient.VideoQuality.LOW);
                 } else {
-                    // Check if we can upgrade? Always try high if good.
-                    // console.log('📈 ABR: Connection Stable -> HIGH');
                     publication.setVideoQuality(LivekitClient.VideoQuality.HIGH);
                 }
-            }, 3000); // 3 seconds interval
+            }, 3000);
         }
 
         function stopAutoMode() {

@@ -1,0 +1,15 @@
+api_key: devkey
+api_secret: secret
+ws_url: ws://172.20.10.2:7880
+insecure: true
+redis:
+  address: 172.20.10.2:6379
+  
+# Health check port
+health_port: 6000
+
+# Template for file output
+file_output:
+  local: true
+  upload_config: 
+    type: local

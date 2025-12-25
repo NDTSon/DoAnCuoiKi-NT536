@@ -49,7 +49,7 @@ func openOrInitSQLite(conn string) (*sql.DB, error) {
 		parts := strings.Split(conn, "?")
 		filePath = strings.TrimPrefix(parts[0], "file:")
 	}
-	
+
 	// Ensure directory exists
 	dir := filepath.Dir(filePath)
 	if dir != "" && dir != "." {
@@ -57,19 +57,15 @@ func openOrInitSQLite(conn string) (*sql.DB, error) {
 			return nil, err
 		}
 	}
-	
+
 	// Use absolute path to avoid issues
 	absPath, err := filepath.Abs(filePath)
 	if err != nil {
 		return nil, err
 	}
-<<<<<<< Updated upstream
-	
-=======
 	// LOG DB PATH
 	fmt.Printf(">>> CONNECTING TO SQLITE DB AT: %s <<<\n", absPath)
 
->>>>>>> Stashed changes
 	// Reconstruct connection string with absolute path
 	if strings.HasPrefix(conn, "file:") {
 		// Keep query parameters if any
@@ -82,7 +78,7 @@ func openOrInitSQLite(conn string) (*sql.DB, error) {
 	} else {
 		conn = absPath
 	}
-	
+
 	db, err := sql.Open("sqlite", conn)
 	if err != nil {
 		return nil, err

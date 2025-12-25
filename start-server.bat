@@ -94,7 +94,7 @@ echo ================================================
 echo.
 
 REM Start the server
-go run ./cmd/server --dev
+go run ./cmd/server --dev --node-ip 172.20.10.2
 
 echo.
 echo Server stopped.
