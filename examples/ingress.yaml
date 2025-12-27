@@ -7,7 +7,7 @@ redis:
   use_tls: false
 api_key: devkey
 api_secret: secret
-ws_url: ws://192.168.1.165:7880
+ws_url: ws://host.docker.internal:7880
 rtmp_port: 1935
 http_relay_port: 9090
 logging:
